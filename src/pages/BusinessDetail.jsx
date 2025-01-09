@@ -1,45 +1,100 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, Title, Text, Group, Badge, Button } from '@mantine/core';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Title, Text, Group, Badge, Button, Stack, Paper } from '@mantine/core';
 import { businesses } from '../data/businesses';
-import { Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 export default function BusinessDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   
-  const business = Object.values(businesses)
-    .flatMap(countries => Object.values(countries))
-    .flatMap(cities => Object.values(cities))
-    .flat()
-    .find(b => b.id === parseInt(id));
+  // Find business and its location
+  let foundBusiness = null;
+  let location = null;
 
-  if (!business) {
+  Object.entries(businesses).forEach(([country, cities]) => {
+    Object.entries(cities).forEach(([city, districts]) => {
+      Object.entries(districts).forEach(([district, businessList]) => {
+        const found = businessList.find(b => b.id === parseInt(id));
+        if (found) {
+          foundBusiness = found;
+          location = { country, city, district };
+        }
+      });
+    });
+  });
+
+  if (!foundBusiness || !location) {
     return (
       <Container size="md" py="xl">
         <Text>Business not found</Text>
-        <Button component={Link} to="/" mt="md">Back to Home</Button>
+        <Button onClick={() => navigate('/')} mt="md">Back to Home</Button>
       </Container>
     );
   }
 
+  const breadcrumbItems = [
+    {
+      label: foundBusiness.type,
+      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}`
+    },
+    {
+      label: location.city,
+      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}`
+    },
+    {
+      label: location.district,
+      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}/${location.district.toLowerCase()}`
+    },
+    {
+      label: foundBusiness.name,
+      path: `/business/${foundBusiness.id}`
+    }
+  ];
+
   return (
     <Container size="md" py="xl">
-      <Button component={Link} to="/" mb="xl">Back to Home</Button>
+      <Breadcrumbs items={breadcrumbItems} />
       
-      <Title order={1} mb="xl">{business.name}</Title>
-      
-      <Badge size="lg" mb="md" color={business.type === 'Beauty Salon' ? 'pink' : 'blue'}>
-        {business.type}
-      </Badge>
+      <Paper shadow="xs" p="xl" mt="md">
+        <Stack spacing="lg">
+          <Title order={1}>{foundBusiness.name}</Title>
+          
+          <Group>
+            <Badge 
+              size="lg" 
+              color={foundBusiness.type === 'Beauty Salon' ? 'pink' : 'blue'}
+            >
+              {foundBusiness.type}
+            </Badge>
+          </Group>
 
-      <Title order={3} mt="xl" mb="md">Services</Title>
-      <Group spacing={8}>
-        {business.services.map(service => (
-          <Badge key={service} variant="outline" size="lg">
-            {service}
-          </Badge>
-        ))}
-      </Group>
+          <div>
+            <Text weight={500} size="lg" mb="xs">Location</Text>
+            <Text>
+              {location.district}, {location.city}, {location.country}
+            </Text>
+          </div>
+
+          <div>
+            <Text weight={500} size="lg" mb="xs">Services</Text>
+            <Group spacing={8}>
+              {foundBusiness.services.map(service => (
+                <Badge 
+                  key={service} 
+                  variant="outline"
+                  size="lg"
+                  color={service === 'Haircut' ? 'grape' : 
+                         service === 'Hair Coloring' ? 'pink' : 
+                         'blue'}
+                >
+                  {service}
+                </Badge>
+              ))}
+            </Group>
+          </div>
+        </Stack>
+      </Paper>
     </Container>
   );
 }

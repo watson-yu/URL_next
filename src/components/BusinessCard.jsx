@@ -1,21 +1,28 @@
 import React from 'react';
 import { Card, Text, Badge, Group, Stack, Divider } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 
 export default function BusinessCard({ business, location }) {
+  const navigate = useNavigate();
+
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder>
+    <Card 
+      shadow="sm" 
+      p="lg" 
+      radius="md" 
+      withBorder
+      sx={{ cursor: 'pointer' }}
+      onClick={() => navigate(`/business/${business.id}`)}
+    >
       <Stack spacing="xs">
-        {/* 店名 */}
         <Text weight={500} size="lg">
           {business.name}
         </Text>
 
-        {/* 位置資訊 */}
         <Text size="sm" color="dimmed">
           {location.district}, {location.city}, {location.country}
         </Text>
 
-        {/* 類型 */}
         <Badge 
           color={business.type === 'Beauty Salon' ? 'pink' : 'blue'} 
           variant="light"
@@ -26,7 +33,6 @@ export default function BusinessCard({ business, location }) {
 
         <Divider my="xs" />
 
-        {/* 服務項目 */}
         <Text size="sm" weight={500} color="dimmed">
           Services:
         </Text>
