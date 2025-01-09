@@ -1,62 +1,87 @@
-import React, { useState, useCallback } from 'react';
-import { Container, Title } from '@mantine/core';
-import { useParams } from 'react-router-dom';
+import React from 'react';
+import { Container, Title, Button, Group } from '@mantine/core';
+import { useLocation, useNavigate } from 'react-router-dom';
+import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
-import BusinessList from '../components/BusinessList';
-import SearchBar from '../components/SearchBar';
+import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath } from '../routes/paths';
+import { generatePath } from '../utils/routes';
 
 export default function ServiceDistrictPage() {
-  const { type, service, city, district } = useParams();
-  const decodedType = decodeURIComponent(type).replace(/-/g, ' ');
-  const decodedService = decodeURIComponent(service).replace(/-/g, ' ');
-  const decodedCity = decodeURIComponent(city);
-  const decodedDistrict = decodeURIComponent(district);
-  const country = decodedCity === 'Taipei' || decodedCity === 'Kaohsiung' ? 'Taiwan' : 'Japan';
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 從URL路徑解析參數
+  const [, , type, serviceCityPath, serviceDistrictPath] = location.pathname.split('/');
+  const [service, city] = serviceCityPath.split('-');
+  const [, district] = serviceDistrictPath.split('-');
+  
+  const formatDisplayText = (text) => {
+    return text
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
-  const [filteredBusinesses, setFilteredBusinesses] = useState(
-    businesses[country][decodedCity][decodedDistrict]
-      .filter(business => 
-        business.type.toLowerCase() === decodedType.toLowerCase() &&
-        business.services.includes(decodedService)
-      )
-  );
+  const formattedCity = formatDisplayText(city);
+  const formattedDistrict = formatDisplayText(district);
+  const formattedType = formatDisplayText(type);
+  const formattedService = formatDisplayText(service);
+  const country = formattedCity === 'Taipei' || formattedCity === 'Kaohsiung' ? 'Taiwan' : 'Japan';
 
-  const handleFilter = useCallback(() => {
-    const filtered = businesses[country][decodedCity][decodedDistrict]
-      .filter(business => 
-        business.type.toLowerCase() === decodedType.toLowerCase() &&
-        business.services.includes(decodedService)
-      );
-
-    setFilteredBusinesses(filtered);
-  }, [country, decodedCity, decodedDistrict, decodedType, decodedService]);
+  // 過濾符合條件的商家
+  const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
+    .filter(business => 
+      business.type.toLowerCase() === formattedType.toLowerCase() &&
+      business.services.includes(formattedService)
+    )
+    .map(business => ({
+      ...business,
+      location: {
+        country,
+        city: formattedCity,
+        district: formattedDistrict
+      }
+    }));
 
   const breadcrumbItems = [
-    { label: decodedType, path: generatePath.type(decodedType) },
-    { 
-      label: `${decodedService} in ${decodedCity}`, 
-      path: generatePath.serviceCity(decodedType, decodedService, decodedCity) 
+    {
+      label: formattedType,
+      path: generatePath.type(type)
     },
-    { 
-      label: decodedDistrict, 
-      path: generatePath.serviceDistrict(decodedType, decodedService, decodedCity, decodedDistrict) 
+    {
+      label: formattedCity,
+      path: generatePath.city(type, city)
+    },
+    {
+      label: `${formattedService} in ${formattedCity}`,
+      path: generatePath.serviceCity(type, service, city)
+    },
+    {
+      label: formattedDistrict,
+      path: generatePath.serviceDistrict(type, service, city, district)
     }
   ];
 
   return (
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
-      <Title order={1} mb="xl">{decodedService} at {decodedType} in {decodedDistrict}, {decodedCity}</Title>
-      <SearchBar 
-        initialType={decodedType}
-        initialCity={decodedCity}
-        initialDistrict={decodedDistrict}
-        initialService={decodedService}
-        onFilter={handleFilter}
-      />
-      <BusinessList businesses={filteredBusinesses} />
+      <Title order={1} align="center" mb="md">
+        {formattedService} at {formattedType} in {formattedDistrict}, {formattedCity}
+      </Title>
+      <UnifiedSearchBar />
+      
+      {/* 返回按鈕 */}
+      <Group position="center" spacing="sm" mb="xl">
+        <Button
+          variant="light"
+          onClick={() => navigate(generatePath.serviceCity(type, service, city))}
+        >
+          {formattedService} in {formattedCity}
+        </Button>
+      </Group>
+
+      <BusinessGrid businesses={filteredBusinesses} />
     </Container>
   );
 }

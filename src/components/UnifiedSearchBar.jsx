@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Autocomplete, Paper, Button, Group } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { generatePath } from '../utils/routes';
 
 export default function UnifiedSearchBar() {
   const navigate = useNavigate();
@@ -18,22 +19,21 @@ export default function UnifiedSearchBar() {
   const handleSearch = () => {
     if (!value) return;
 
-    // 將空格轉換為連字符，並轉為小寫
     const formatUrlSegment = (text) => text.toLowerCase().replace(/ /g, '-');
 
     if (value.includes('Beauty Salon')) {
       if (value.includes('Xinyi')) {
-        navigate(`/${formatUrlSegment('Beauty Salon')}/taipei/xinyi`);
+        navigate(generatePath.district('beauty-salon', 'taipei', 'xinyi'));
       } else if (value.includes('Taipei')) {
-        navigate(`/${formatUrlSegment('Beauty Salon')}/taipei`);
+        navigate(generatePath.city('beauty-salon', 'taipei'));
       } else {
-        navigate(`/${formatUrlSegment('Beauty Salon')}`);
+        navigate(generatePath.type('beauty-salon'));
       }
     } else if (value.includes('Barbershop')) {
       if (value.includes('Taipei')) {
-        navigate(`/${formatUrlSegment('Barbershop')}/taipei`);
+        navigate(generatePath.city('barbershop', 'taipei'));
       } else {
-        navigate(`/${formatUrlSegment('Barbershop')}`);
+        navigate(generatePath.type('barbershop'));
       }
     }
   };

@@ -36,15 +36,11 @@ export default function BusinessDetail() {
   const breadcrumbItems = [
     {
       label: foundBusiness.type,
-      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}`
+      path: `/home/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}`
     },
     {
       label: location.city,
-      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}`
-    },
-    {
-      label: location.district,
-      path: `/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}/${location.district.toLowerCase()}`
+      path: `/home/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}`
     },
     {
       label: foundBusiness.name,

@@ -1,13 +1,18 @@
 import React from 'react';
-import { Container, Title } from '@mantine/core';
-import { useParams } from 'react-router-dom';
+import { Container, Title, Button, Group, Divider } from '@mantine/core';
+import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
+import { ROUTES, generatePath } from '../utils/routes';
 
 export default function CityPage() {
-  const { type, city } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 從URL路徑解析參數
+  const [, , type, city] = location.pathname.split('/');
   
   const formatDisplayText = (text) => {
     return text
@@ -17,14 +22,18 @@ export default function CityPage() {
   };
 
   const formattedCity = formatDisplayText(city);
+  const formattedType = formatDisplayText(type);
   const country = formattedCity === 'Taipei' || formattedCity === 'Kaohsiung' ? 'Taiwan' : 'Japan';
-  
-  // 獲取指定城市和類型的商家，包含完整位置資訊
+
+  // 獲取該城市同類型商家的所有服務
+  const typeServices = ROUTES.SERVICES[type] || [];
+
+  // 過濾當前type的商家列表
   const filteredBusinesses = [];
   Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
       .filter(business => 
-        business.type.toLowerCase() === formatDisplayText(type).toLowerCase()
+        business.type.toLowerCase() === formattedType.toLowerCase()
       )
       .forEach(business => {
         filteredBusinesses.push({
@@ -40,22 +49,48 @@ export default function CityPage() {
 
   const breadcrumbItems = [
     {
-      label: formatDisplayText(type),
-      path: `/${type}`
+      label: formattedType,
+      path: generatePath.type(type)
     },
     {
       label: formattedCity,
-      path: `/${type}/${city}`
+      path: generatePath.city(type, city)
     }
   ];
 
   return (
     <Container size="md" py="xl">
+      <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formatDisplayText(type)} in {formattedCity}
+        {formattedType} in {formattedCity}
       </Title>
       <UnifiedSearchBar />
-      <Breadcrumbs items={breadcrumbItems} />
+      
+      {/* 按鈕組 */}
+      <Group position="center" spacing="sm" mb="xl">
+        {/* Type按鈕 */}
+        <Button
+          variant="light"
+          onClick={() => navigate(generatePath.type(type))}
+        >
+          {formattedType} in {formattedCity}
+        </Button>
+
+        {/* 分隔線 */}
+        <Divider orientation="vertical" />
+
+        {/* 服務按鈕列表 */}
+        {typeServices.map((service) => (
+          <Button
+            key={service}
+            variant="light"
+            onClick={() => navigate(generatePath.serviceCity(type, service, city))}
+          >
+            {formatDisplayText(service)} in {formattedCity}
+          </Button>
+        ))}
+      </Group>
+
       <BusinessGrid businesses={filteredBusinesses} />
     </Container>
   );

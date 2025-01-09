@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
 import HomePage from './pages/HomePage';
 import TypePage from './pages/TypePage';
@@ -15,11 +15,11 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/:type" element={<TypePage />} />
-          <Route path="/:type/:city" element={<CityPage />} />
-          <Route path="/:type/:city/:district" element={<DistrictPage />} />
-          <Route path="/:type/:service-:city" element={<ServiceCityPage />} />
-          <Route path="/:type/:service-:city/:district" element={<ServiceDistrictPage />} />
+          <Route path="/home/:type" element={<TypePage />} />
+          <Route path="/home/:type/:city" element={<CityPage />} />
+          <Route path="/home/:type/:city/:district" element={<DistrictPage />} />
+          <Route path="/home/:type/:service-:city" element={<ServiceCityPage />} />
+          <Route path="/home/:type/:service-:city/:service-:district" element={<ServiceDistrictPage />} />
           <Route path="/business/:id" element={<BusinessDetail />} />
         </Routes>
       </Router>
