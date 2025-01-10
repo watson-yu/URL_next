@@ -5,7 +5,8 @@ import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, formatDisplayText } from '../utils/routes';
+import { generatePath } from '../utils/routes';
+import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function TypePage() {
@@ -13,10 +14,9 @@ export default function TypePage() {
   const location = useLocation();
   const [, , type] = location.pathname.split('/');
   
-  // 用於調試
-  console.log('Current type:', type);
-  console.log('Available types:', Object.keys(services.types));
-
+  // 從 services.js 獲取類型資訊
+  const typeInfo = services.types[type];
+  
   // 獲取所有城市
   const cities = [...new Set(
     Object.values(businesses).flatMap(country => 
@@ -30,15 +30,7 @@ export default function TypePage() {
     Object.entries(countryCities).forEach(([city, districts]) => {
       Object.entries(districts).forEach(([district, businessList]) => {
         businessList
-          .filter(business => {
-            // 用於調試
-            console.log('Checking business:', {
-              businessType: business.type,
-              type,
-              match: business.type === type
-            });
-            return business.type === type;
-          })
+          .filter(business => business.type === type)
           .forEach(business => {
             filteredBusinesses.push({
               ...business,
@@ -53,12 +45,9 @@ export default function TypePage() {
     });
   });
 
-  // 用於調試
-  console.log('Filtered businesses:', filteredBusinesses);
-
   const breadcrumbItems = [
     {
-      label: formatDisplayText(type),
+      label: typeInfo?.displayName || format.toDisplayFormat(type),
       path: generatePath.type(type)
     }
   ];
@@ -67,7 +56,7 @@ export default function TypePage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {services.types[type]?.displayName || formatDisplayText(type)}
+        {typeInfo?.displayName || format.toDisplayFormat(type)}
       </Title>
       <UnifiedSearchBar />
       
@@ -94,10 +83,10 @@ export default function TypePage() {
             <Button
               key={city}
               variant="light"
-              onClick={() => navigate(generatePath.city(type, city.toLowerCase()))}
+              onClick={() => navigate(generatePath.city(type, format.toStorageFormat(city)))}
               sx={{ flexShrink: 0 }}
             >
-              {formatDisplayText(type)} in {city}
+              {typeInfo?.displayName || format.toDisplayFormat(type)} in {format.toDisplayFormat(city)}
             </Button>
           ))}
         </Group>

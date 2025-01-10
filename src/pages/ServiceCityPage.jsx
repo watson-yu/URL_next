@@ -5,8 +5,8 @@ import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
-import { services } from '../data/services';
+import { generatePath, locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
 
 export default function ServiceCityPage() {
   const navigate = useNavigate();
@@ -15,9 +15,9 @@ export default function ServiceCityPage() {
   const [, , type, serviceCityPath] = location.pathname.split('/');
   const [service, city] = serviceCityPath.split('-');
   
-  const formattedCity = formatDisplayText(city);
-  const formattedType = formatDisplayText(type);
-  const serviceKey = service.toLowerCase();  // 使用小寫作為服務的 key
+  const formattedCity = format.toDisplayFormat(city);
+  const formattedType = format.toDisplayFormat(type);
+  const formattedService = format.toDisplayFormat(service);
 
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
@@ -46,15 +46,10 @@ export default function ServiceCityPage() {
   const filteredBusinesses = [];
   Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
-      .filter(business => {
-        console.log('Checking business:', {
-          businessType: business.type,
-          type,
-          businessServices: business.services,
-          serviceKey
-        });
-        return business.type === type && business.services.includes(serviceKey);
-      })
+      .filter(business => 
+        business.type === type && 
+        business.services.includes(format.toStorageFormat(service))
+      )
       .forEach(business => {
         filteredBusinesses.push({
           ...business,
@@ -67,8 +62,6 @@ export default function ServiceCityPage() {
       });
   });
 
-  console.log('Filtered businesses:', filteredBusinesses);
-
   const breadcrumbItems = [
     {
       label: formattedType,
@@ -79,7 +72,7 @@ export default function ServiceCityPage() {
       path: generatePath.city(type, city)
     },
     {
-      label: `${formatDisplayText(serviceKey)} in ${formattedCity}`,
+      label: `${formattedService} in ${formattedCity}`,
       path: generatePath.serviceCity(type, service, city)
     }
   ];
@@ -88,7 +81,7 @@ export default function ServiceCityPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formatDisplayText(serviceKey)} at {formattedType} in {formattedCity}
+        {formattedService} at {formattedType} in {formattedCity}
       </Title>
       <UnifiedSearchBar />
       

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Text, Badge, Stack } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services';
-import { formatDisplayText } from '../utils/routes';
+import { format } from '../utils/format';
 
 export default function BusinessCard({ business, location }) {
   const navigate = useNavigate();
@@ -24,7 +24,9 @@ export default function BusinessCard({ business, location }) {
         </Text>
 
         <Text size="sm" color="dimmed">
-          {formatDisplayText(location.district)}, {formatDisplayText(location.city)}, {location.country}
+          {format.toDisplayFormat(location.district)}, 
+          {format.toDisplayFormat(location.city)}, 
+          {location.country}
         </Text>
 
         <Badge 
@@ -32,7 +34,7 @@ export default function BusinessCard({ business, location }) {
           variant="light"
           size="lg"
         >
-          {business.displayName || typeInfo?.displayName || formatDisplayText(business.type)}
+          {business.displayName || typeInfo?.displayName || format.toDisplayFormat(business.type)}
         </Badge>
       </Stack>
     </Card>

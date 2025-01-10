@@ -6,20 +6,14 @@ import BusinessGrid from '../components/BusinessGrid';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { businesses } from '../data/businesses';
 import { generatePath } from '../utils/routes';
+import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function HomePage() {
   const navigate = useNavigate();
 
-  const formatDisplayText = (text) => {
-    return text
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
   // 從 services.js 動態獲取所有服務類型
-  const types = Object.entries(services.types);
+  const types = Object.keys(services.types);
 
   // 獲取所有商家並添加位置信息
   const allBusinesses = [];
@@ -67,14 +61,14 @@ export default function HomePage() {
             padding: '4px',
           }}
         >
-          {types.map(([key, { displayName }]) => (
+          {types.map((type) => (
             <Button
-              key={key}
+              key={type}
               variant="light"
-              onClick={() => navigate(generatePath.type(key))}
+              onClick={() => navigate(generatePath.type(type))}
               sx={{ flexShrink: 0 }}
             >
-              {displayName}
+              {services.types[type].displayName}
             </Button>
           ))}
         </Group>

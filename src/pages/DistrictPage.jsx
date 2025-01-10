@@ -1,11 +1,12 @@
 import React from 'react';
-import { Container, Title, Button, Group, Divider, Text, Box } from '@mantine/core';
+import { Container, Title, Button, Group, Text, Box } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
+import { generatePath, locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function DistrictPage() {
@@ -14,9 +15,9 @@ export default function DistrictPage() {
   
   const [, , type, city, district] = location.pathname.split('/');
   
-  const formattedCity = formatDisplayText(city);
-  const formattedDistrict = formatDisplayText(district);
-  const formattedType = formatDisplayText(type);
+  const formattedCity = format.toDisplayFormat(city);
+  const formattedDistrict = format.toDisplayFormat(district);
+  const formattedType = format.toDisplayFormat(type);
 
   // 驗證城市和區域是否存在
   if (!locationUtils.isCityValid(formattedCity)) {
@@ -62,11 +63,11 @@ export default function DistrictPage() {
   }
 
   const country = locationUtils.getCountryForCity(formattedCity);
-  const typeServices = services.types[type.toLowerCase()]?.services || [];
+  const typeServices = services.types[type]?.services || [];
 
   // 過濾當前district的商家列表
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
-    .filter(business => business.type.toLowerCase() === formattedType.toLowerCase())
+    .filter(business => business.type === type)
     .map(business => ({
       ...business,
       location: {
@@ -126,21 +127,19 @@ export default function DistrictPage() {
             {formattedType} in {formattedCity}
           </Button>
 
-          <Divider orientation="vertical" />
-
           {typeServices.map((service) => (
             <Button
               key={service}
               variant="light"
               onClick={() => navigate(generatePath.serviceDistrict(
                 type, 
-                service.toLowerCase().replace(/ /g, '-'), 
+                service, 
                 city, 
                 district
               ))}
               sx={{ flexShrink: 0 }}
             >
-              {service} in {formattedDistrict}
+              {format.toDisplayFormat(service)} in {formattedDistrict}
             </Button>
           ))}
         </Group>

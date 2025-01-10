@@ -3,12 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Title, Text, Group, Badge, Button, Stack, Paper } from '@mantine/core';
 import { businesses } from '../data/businesses';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { generatePath } from '../utils/routes';
+import { format } from '../utils/format';
+import { services } from '../data/services';
 
 export default function BusinessDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  // Find business and its location
+  // 尋找商家
   let foundBusiness = null;
   let location = null;
 
@@ -33,14 +36,15 @@ export default function BusinessDetail() {
     );
   }
 
+  const typeInfo = services.types[foundBusiness.type];
   const breadcrumbItems = [
     {
-      label: foundBusiness.type,
-      path: `/home/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}`
+      label: typeInfo.displayName,
+      path: generatePath.type(foundBusiness.type)
     },
     {
-      label: location.city,
-      path: `/home/${foundBusiness.type.toLowerCase().replace(/ /g, '-')}/${location.city.toLowerCase()}`
+      label: format.toDisplayFormat(location.city),
+      path: generatePath.city(foundBusiness.type, location.city)
     },
     {
       label: foundBusiness.name,
@@ -59,16 +63,16 @@ export default function BusinessDetail() {
           <Group>
             <Badge 
               size="lg" 
-              color={foundBusiness.type === 'Beauty Salon' ? 'pink' : 'blue'}
+              color={typeInfo.color}
             >
-              {foundBusiness.type}
+              {typeInfo.displayName}
             </Badge>
           </Group>
 
           <div>
             <Text weight={500} size="lg" mb="xs">Location</Text>
             <Text>
-              {location.district}, {location.city}, {location.country}
+              {format.toDisplayFormat(location.district)}, {format.toDisplayFormat(location.city)}, {location.country}
             </Text>
           </div>
 
@@ -79,12 +83,8 @@ export default function BusinessDetail() {
                 <Badge 
                   key={service} 
                   variant="outline"
-                  size="lg"
-                  color={service === 'Haircut' ? 'grape' : 
-                         service === 'Hair Coloring' ? 'pink' : 
-                         'blue'}
                 >
-                  {service}
+                  {format.toDisplayFormat(service)}
                 </Badge>
               ))}
             </Group>

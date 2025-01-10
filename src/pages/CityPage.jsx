@@ -1,11 +1,12 @@
 import React from 'react';
-import { Container, Title, Button, Group, Divider, Text, Box } from '@mantine/core';
+import { Container, Title, Button, Group, Text, Box } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
+import { generatePath, locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function CityPage() {
@@ -14,10 +15,9 @@ export default function CityPage() {
   
   const [, , type, city] = location.pathname.split('/');
   
-  const formattedCity = formatDisplayText(city);
-  const formattedType = formatDisplayText(type);
+  const formattedCity = format.toDisplayFormat(city);
+  const typeInfo = services.types[type];
 
-  // 驗證城市是否存在
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
       <Container size="md" py="xl">
@@ -29,7 +29,7 @@ export default function CityPage() {
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {formattedType}
+            Back to {typeInfo?.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -40,15 +40,12 @@ export default function CityPage() {
   }
 
   const country = locationUtils.getCountryForCity(formattedCity);
-  const typeServices = services.types[type.toLowerCase()]?.services || [];
 
-  // 過濾當前type的商家列表
+  // 過濾符合條件的商家
   const filteredBusinesses = [];
-  Object.entries(businesses[country][formattedCity] || {}).forEach(([district, businessList]) => {
+  Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
-      .filter(business => 
-        business.type.toLowerCase() === formattedType.toLowerCase()
-      )
+      .filter(business => business.type === type)
       .forEach(business => {
         filteredBusinesses.push({
           ...business,
@@ -63,7 +60,7 @@ export default function CityPage() {
 
   const breadcrumbItems = [
     {
-      label: formattedType,
+      label: typeInfo?.displayName,
       path: generatePath.type(type)
     },
     {
@@ -76,7 +73,7 @@ export default function CityPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formattedType} in {formattedCity}
+        {typeInfo?.displayName} in {formattedCity}
       </Title>
       <UnifiedSearchBar />
       
@@ -99,28 +96,29 @@ export default function CityPage() {
             padding: '4px',
           }}
         >
+          {/* 主要類型按鈕 - 使用 filled 變體表示選中狀態 */}
           <Button
-            variant="light"
+            variant="filled"
+            color={typeInfo?.color || 'blue'}
             onClick={() => navigate(generatePath.type(type))}
             sx={{ flexShrink: 0 }}
           >
-            {formattedType} in {formattedCity}
+            {typeInfo?.displayName}
           </Button>
 
-          <Divider orientation="vertical" />
-
-          {typeServices.map((service) => (
+          {/* 服務細項按鈕 */}
+          {typeInfo?.services.map((service) => (
             <Button
               key={service}
               variant="light"
               onClick={() => navigate(generatePath.serviceCity(
-                type, 
-                service.toLowerCase().replace(/ /g, '-'), 
+                type,
+                format.toStorageFormat(service),
                 city
               ))}
               sx={{ flexShrink: 0 }}
             >
-              {service} in {formattedCity}
+              {format.toDisplayFormat(service)}
             </Button>
           ))}
         </Group>

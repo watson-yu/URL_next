@@ -9,7 +9,7 @@ import ServiceCityPage from './pages/ServiceCityPage';
 import ServiceDistrictPage from './pages/ServiceDistrictPage';
 import BusinessDetail from './pages/BusinessDetail';
 
-function App() {
+export default function App() {
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS>
       <Router>
@@ -26,5 +26,3 @@ function App() {
     </MantineProvider>
   );
 }
-
-export default App;

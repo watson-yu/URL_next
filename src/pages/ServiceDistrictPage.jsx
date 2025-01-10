@@ -5,7 +5,8 @@ import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
+import { generatePath, locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
 
 export default function ServiceDistrictPage() {
   const navigate = useNavigate();
@@ -15,12 +16,11 @@ export default function ServiceDistrictPage() {
   const [service, city] = serviceCityPath.split('-');
   const [, district] = serviceDistrictPath.split('-');
   
-  const formattedCity = formatDisplayText(city);
-  const formattedDistrict = formatDisplayText(district);
-  const formattedType = formatDisplayText(type);
-  const formattedService = formatDisplayText(service);
+  const formattedCity = format.toDisplayFormat(city);
+  const formattedDistrict = format.toDisplayFormat(district);
+  const formattedType = format.toDisplayFormat(type);
+  const formattedService = format.toDisplayFormat(service);
 
-  // 驗證城市和區域是否存在
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
       <Container size="md" py="xl">
@@ -65,15 +65,12 @@ export default function ServiceDistrictPage() {
 
   const country = locationUtils.getCountryForCity(formattedCity);
 
-  // 過濾符合條件的商家，注意大小寫問題
+  // 過濾符合條件的商家
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
-    .filter(business => {
-      const businessType = business.type.toLowerCase().replace(/ /g, '-');
-      const hasService = business.services.some(s => 
-        s.toLowerCase() === formattedService.toLowerCase()
-      );
-      return businessType === type.toLowerCase() && hasService;
-    })
+    .filter(business => 
+      business.type === type && 
+      business.services.includes(format.toStorageFormat(service))
+    )
     .map(business => ({
       ...business,
       location: {
