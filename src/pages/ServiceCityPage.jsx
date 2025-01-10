@@ -7,6 +7,7 @@ import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
 import { generatePath, locationUtils } from '../utils/routes';
 import { format } from '../utils/format';
+import { services } from '../data/services';
 
 export default function ServiceCityPage() {
   const navigate = useNavigate();
@@ -16,8 +17,8 @@ export default function ServiceCityPage() {
   const [service, city] = serviceCityPath.split('-');
   
   const formattedCity = format.toDisplayFormat(city);
-  const formattedType = format.toDisplayFormat(type);
-  const formattedService = format.toDisplayFormat(service);
+  const typeInfo = services.types[type];
+  const currentService = format.toStorageFormat(service);
 
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
@@ -30,7 +31,7 @@ export default function ServiceCityPage() {
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {formattedType}
+            Back to {typeInfo?.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -48,7 +49,7 @@ export default function ServiceCityPage() {
     businessList
       .filter(business => 
         business.type === type && 
-        business.services.includes(format.toStorageFormat(service))
+        business.services.includes(currentService)
       )
       .forEach(business => {
         filteredBusinesses.push({
@@ -64,15 +65,11 @@ export default function ServiceCityPage() {
 
   const breadcrumbItems = [
     {
-      label: formattedType,
+      label: typeInfo?.displayName,
       path: generatePath.type(type)
     },
     {
-      label: formattedCity,
-      path: generatePath.city(type, city)
-    },
-    {
-      label: `${formattedService} in ${formattedCity}`,
+      label: `${format.toDisplayFormat(service)} - ${formattedCity}`,
       path: generatePath.serviceCity(type, service, city)
     }
   ];
@@ -81,7 +78,7 @@ export default function ServiceCityPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formattedService} at {formattedType} in {formattedCity}
+        {format.toDisplayFormat(service)} at {typeInfo?.displayName} in {formattedCity}
       </Title>
       <UnifiedSearchBar />
       
@@ -104,13 +101,22 @@ export default function ServiceCityPage() {
             padding: '4px',
           }}
         >
-          <Button
-            variant="light"
-            onClick={() => navigate(generatePath.city(type, city))}
-            sx={{ flexShrink: 0 }}
-          >
-            {formattedType} in {formattedCity}
-          </Button>
+          {/* 只顯示服務按鈕 */}
+          {typeInfo?.services.map((serviceOption) => (
+            <Button
+              key={serviceOption}
+              variant={currentService === serviceOption ? "filled" : "light"}
+              color={typeInfo?.color}
+              onClick={() => navigate(generatePath.serviceCity(
+                type,
+                format.toStorageFormat(serviceOption),
+                city
+              ))}
+              sx={{ flexShrink: 0 }}
+            >
+              {format.toDisplayFormat(serviceOption)}
+            </Button>
+          ))}
         </Group>
       </Box>
 
