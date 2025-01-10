@@ -16,21 +16,21 @@ const generateBusinesses = () => {
         let id = 1;
         
         Object.entries(services.types).forEach(([typeKey, { displayName, services: typeServices }]) => {
-          result[country][city][district].push({
-            id: id++,
-            name: `${district} ${displayName}`,
-            // 儲存格式
-            type: format.toStorageFormat(typeKey),
-            services: typeServices.map(format.toStorageFormat),
-            // 顯示格式
-            displayName,
-            // 位置資訊
-            location: {
-              country,
-              city: format.toStorageFormat(city),
-              district: format.toStorageFormat(district)
-            }
-          });
+          // Generate 2 businesses for each type in each district
+          for (let i = 0; i < 2; i++) {
+            result[country][city][district].push({
+              id: id++,
+              name: `${district} ${displayName} ${i + 1}`,
+              type: format.toStorageFormat(typeKey),
+              services: typeServices.map(format.toStorageFormat),
+              displayName,
+              location: {
+                country,
+                city: format.toStorageFormat(city),
+                district: format.toStorageFormat(district)
+              }
+            });
+          }
         });
       });
     });

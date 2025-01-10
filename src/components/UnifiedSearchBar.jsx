@@ -13,7 +13,10 @@ export default function UnifiedSearchBar() {
     'Beauty Salon in Taipei',
     'Barbershop in Taipei',
     'Haircut at Beauty Salon',
-    'Beauty Salon in Xinyi'
+    'Beauty Salon in Xinyi',
+    'Massage',
+    'Massage in Taipei',
+    'Full Body Massage'
   ];
 
   const handleSearch = () => {
@@ -35,6 +38,12 @@ export default function UnifiedSearchBar() {
       } else {
         navigate(generatePath.type('barbershop'));
       }
+    } else if (value.includes('Massage')) {
+      if (value.includes('Taipei')) {
+        navigate(generatePath.city('massage', 'taipei'));
+      } else {
+        navigate(generatePath.type('massage'));
+      }
     }
   };
 
@@ -45,7 +54,7 @@ export default function UnifiedSearchBar() {
           value={value}
           onChange={setValue}
           data={suggestions}
-          placeholder="Try 'Beauty Salon in Taipei' or 'Barbershop'"
+          placeholder="Try 'Beauty Salon in Taipei' or 'Massage'"
           sx={{ flex: 1 }}
           onOptionSubmit={(selectedValue) => {
             setValue(selectedValue);

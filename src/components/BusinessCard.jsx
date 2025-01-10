@@ -29,11 +29,7 @@ export default function BusinessCard({ business, location }) {
           {location.country}
         </Text>
 
-        <Badge 
-          color={typeInfo?.color || 'gray'}
-          variant="light"
-          size="lg"
-        >
+        <Badge variant="light">
           {business.displayName || typeInfo?.displayName || format.toDisplayFormat(business.type)}
         </Badge>
       </Stack>
