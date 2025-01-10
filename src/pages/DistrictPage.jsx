@@ -5,7 +5,7 @@ import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils } from '../utils/routes';
+import { generatePath, locationUtils, parseTypeService } from '../utils/routes';
 import { format } from '../utils/format';
 import { services } from '../data/services';
 
@@ -13,13 +13,13 @@ export default function DistrictPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [, , type, city, district] = location.pathname.split('/');
+  const [, , typeService, city, district] = location.pathname.split('/');
+  const { type, service } = parseTypeService(typeService);
   
   const formattedCity = format.toDisplayFormat(city);
   const formattedDistrict = format.toDisplayFormat(district);
-  const formattedType = format.toDisplayFormat(type);
+  const typeInfo = services.types[type];
 
-  // 驗證城市和區域是否存在
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
       <Container size="md" py="xl">
@@ -31,7 +31,7 @@ export default function DistrictPage() {
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {formattedType}
+            Back to {typeInfo?.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -51,7 +51,7 @@ export default function DistrictPage() {
           The district "{formattedDistrict}" does not exist in {formattedCity}.
         </Text>
         <Group position="center">
-          <Button onClick={() => navigate(generatePath.city(type, city))}>
+          <Button onClick={() => navigate(generatePath.city(typeService, city))}>
             Back to {formattedCity}
           </Button>
           <Button onClick={() => navigate('/')}>
@@ -63,11 +63,16 @@ export default function DistrictPage() {
   }
 
   const country = locationUtils.getCountryForCity(formattedCity);
-  const typeServices = services.types[type]?.services || [];
 
-  // 過濾當前district的商家列表
+  // 過濾符合條件的商家
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
-    .filter(business => business.type === type)
+    .filter(business => {
+      const typeMatch = business.type === type;
+      if (service) {
+        return typeMatch && business.services.includes(service);
+      }
+      return typeMatch;
+    })
     .map(business => ({
       ...business,
       location: {
@@ -79,16 +84,16 @@ export default function DistrictPage() {
 
   const breadcrumbItems = [
     {
-      label: formattedType,
+      label: typeInfo?.displayName,
       path: generatePath.type(type)
     },
     {
       label: formattedCity,
-      path: generatePath.city(type, city)
+      path: generatePath.city(typeService, city)
     },
     {
       label: formattedDistrict,
-      path: generatePath.district(type, city, district)
+      path: generatePath.district(typeService, city, district)
     }
   ];
 
@@ -96,55 +101,13 @@ export default function DistrictPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formattedType} in {formattedDistrict}, {formattedCity}
+        {service ? 
+          `${format.toDisplayFormat(service)} at ${typeInfo?.displayName} in ${formattedDistrict}, ${formattedCity}` :
+          `${typeInfo?.displayName} in ${formattedDistrict}, ${formattedCity}`
+        }
       </Title>
       <UnifiedSearchBar />
       
-      <Box 
-        sx={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          marginBottom: 'xl',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
-          '-ms-overflow-style': 'none',
-          'scrollbarWidth': 'none'
-        }}
-      >
-        <Group 
-          spacing="sm" 
-          noWrap
-          sx={{
-            padding: '4px',
-          }}
-        >
-          <Button
-            variant="light"
-            onClick={() => navigate(generatePath.city(type, city))}
-            sx={{ flexShrink: 0 }}
-          >
-            {formattedType} in {formattedCity}
-          </Button>
-
-          {typeServices.map((service) => (
-            <Button
-              key={service}
-              variant="light"
-              onClick={() => navigate(generatePath.serviceDistrict(
-                type, 
-                service, 
-                city, 
-                district
-              ))}
-              sx={{ flexShrink: 0 }}
-            >
-              {format.toDisplayFormat(service)} in {formattedDistrict}
-            </Button>
-          ))}
-        </Group>
-      </Box>
-
       <BusinessGrid businesses={filteredBusinesses} />
     </Container>
   );

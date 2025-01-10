@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Container, Title, Button, Group, Text, Box } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath, locationUtils } from '../utils/routes';
+import { generatePath, locationUtils, parseTypeService } from '../utils/routes';
 import { format } from '../utils/format';
 import { services } from '../data/services';
 
@@ -13,8 +13,8 @@ export default function CityPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [, , type, city] = location.pathname.split('/');
-  const [selectedService, setSelectedService] = useState(null);
+  const [, , typeService, city] = location.pathname.split('/');
+  const { type, service } = parseTypeService(typeService);
   
   const formattedCity = format.toDisplayFormat(city);
   const typeInfo = services.types[type];
@@ -48,8 +48,8 @@ export default function CityPage() {
     businessList
       .filter(business => {
         const typeMatch = business.type === type;
-        if (selectedService) {
-          return typeMatch && business.services.includes(selectedService);
+        if (service) {
+          return typeMatch && business.services.includes(service);
         }
         return typeMatch;
       })
@@ -65,43 +65,25 @@ export default function CityPage() {
       });
   });
 
-  // 根據選中的服務更新麵包屑
   const breadcrumbItems = [
     {
       label: typeInfo?.displayName,
       path: generatePath.type(type)
+    },
+    {
+      label: formattedCity,
+      path: generatePath.city(typeService, city)
     }
   ];
-
-  if (selectedService) {
-    // 如果選中了服務，顯示 "服務 - 城市" 格式
-    breadcrumbItems.push({
-      label: `${format.toDisplayFormat(selectedService)} - ${formattedCity}`,
-      path: generatePath.serviceCity(type, selectedService, city)
-    });
-  } else {
-    // 如果沒有選中服務，只顯示城市
-    breadcrumbItems.push({
-      label: formattedCity,
-      path: generatePath.city(type, city)
-    });
-  }
-
-  // 處理服務選擇
-  const handleServiceClick = (service) => {
-    if (selectedService === service) {
-      setSelectedService(null);
-    } else {
-      setSelectedService(service);
-    }
-  };
 
   return (
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {typeInfo?.displayName} in {formattedCity}
-        {selectedService && ` - ${format.toDisplayFormat(selectedService)}`}
+        {service ? 
+          `${format.toDisplayFormat(service)} at ${typeInfo?.displayName} in ${formattedCity}` :
+          `${typeInfo?.displayName} in ${formattedCity}`
+        }
       </Title>
       <UnifiedSearchBar />
       
@@ -110,40 +92,27 @@ export default function CityPage() {
           overflowX: 'auto',
           overflowY: 'hidden',
           marginBottom: 'xl',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
+          '&::-webkit-scrollbar': { display: 'none' },
           '-ms-overflow-style': 'none',
           'scrollbarWidth': 'none'
         }}
       >
-        <Group 
-          spacing="sm" 
-          noWrap
-          sx={{
-            padding: '4px',
-          }}
-        >
-          {/* 主要類型按鈕 */}
-          <Button
-            variant="filled"
-            color={typeInfo?.color || 'blue'}
-            onClick={() => navigate(generatePath.type(type))}
-            sx={{ flexShrink: 0 }}
-          >
-            {typeInfo?.displayName}
-          </Button>
-
-          {/* 服務細項按鈕 */}
-          {typeInfo?.services.map((service) => (
+        <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
+          {locationUtils.getDistrictsForCity(formattedCity).map((district) => (
             <Button
-              key={service}
-              variant={selectedService === service ? "filled" : "light"}
-              color={selectedService === service ? typeInfo?.color : undefined}
-              onClick={() => handleServiceClick(service)}
+              key={district}
+              variant="light"
+              onClick={() => navigate(generatePath.district(
+                typeService,
+                city,
+                format.toRouteFormat(district)
+              ))}
               sx={{ flexShrink: 0 }}
             >
-              {format.toDisplayFormat(service)}
+              {service ? 
+                `${format.toDisplayFormat(service)} in ${format.toDisplayFormat(district)}` :
+                `${typeInfo?.displayName} in ${format.toDisplayFormat(district)}`
+              }
             </Button>
           ))}
         </Group>

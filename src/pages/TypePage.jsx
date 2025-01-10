@@ -5,32 +5,37 @@ import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath } from '../utils/routes';
+import { generatePath, parseTypeService } from '../utils/routes';
 import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function TypePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [, , type] = location.pathname.split('/');
+  const [, , typeService] = location.pathname.split('/');
+  const { type, service } = parseTypeService(typeService);
   
-  // 從 services.js 獲取類型資訊
   const typeInfo = services.types[type];
   
-  // 獲取所有城市
   const cities = [...new Set(
     Object.values(businesses).flatMap(country => 
       Object.keys(country)
     )
   )];
 
-  // 過濾符合當前type的所有商家
+  // 過濾符合當前type和service的所有商家
   const filteredBusinesses = [];
   Object.entries(businesses).forEach(([country, countryCities]) => {
     Object.entries(countryCities).forEach(([city, districts]) => {
       Object.entries(districts).forEach(([district, businessList]) => {
         businessList
-          .filter(business => business.type === type)
+          .filter(business => {
+            const typeMatch = business.type === type;
+            if (service) {
+              return typeMatch && business.services.includes(service);
+            }
+            return typeMatch;
+          })
           .forEach(business => {
             filteredBusinesses.push({
               ...business,
@@ -56,7 +61,10 @@ export default function TypePage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {typeInfo?.displayName || format.toDisplayFormat(type)}
+        {service ? 
+          `${format.toDisplayFormat(service)} at ${typeInfo?.displayName}` :
+          typeInfo?.displayName
+        }
       </Title>
       <UnifiedSearchBar />
       
@@ -65,28 +73,23 @@ export default function TypePage() {
           overflowX: 'auto',
           overflowY: 'hidden',
           marginBottom: 'xl',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
+          '&::-webkit-scrollbar': { display: 'none' },
           '-ms-overflow-style': 'none',
           'scrollbarWidth': 'none'
         }}
       >
-        <Group 
-          spacing="sm" 
-          noWrap
-          sx={{
-            padding: '4px',
-          }}
-        >
+        <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
           {cities.map((city) => (
             <Button
               key={city}
               variant="light"
-              onClick={() => navigate(generatePath.city(type, format.toStorageFormat(city)))}
+              onClick={() => navigate(generatePath.city(typeService, format.toRouteFormat(city)))}
               sx={{ flexShrink: 0 }}
             >
-              {typeInfo?.displayName || format.toDisplayFormat(type)} in {format.toDisplayFormat(city)}
+              {service ? 
+                `${format.toDisplayFormat(service)} in ${format.toDisplayFormat(city)}` :
+                `${typeInfo?.displayName} in ${format.toDisplayFormat(city)}`
+              }
             </Button>
           ))}
         </Group>

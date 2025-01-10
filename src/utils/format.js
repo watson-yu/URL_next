@@ -1,32 +1,37 @@
-// 新增統一的格式處理工具
 export const format = {
-  // 儲存格式：全小寫連字號
+  // 儲存格式：使用底線作為分隔符
   toStorageFormat: (text) => {
+    if (!text) return '';
     return text
       .toLowerCase()
       .trim()
-      .replace(/[\s_]+/g, '-')  // 空格或底線轉連字號
-      .replace(/[^a-z0-9-]/g, ''); // 只保留小寫字母、數字和連字號
+      .replace(/[-\s]+/g, '_');  // 空格和連字號轉換為底線
   },
 
-  // 顯示格式：每個單字首字母大寫
-  toDisplayFormat: (text) => {
+  // URL格式：使用連字號
+  toRouteFormat: (text) => {
+    if (!text) return '';
     return text
-      .split(/[-\s_]+/)  // 以連字號、空格或底線分割
+      .toLowerCase()
+      .trim()
+      .replace(/[_\s]+/g, '-');  // 底線和空格轉換為連字號
+  },
+
+  // 顯示格式：使用空格，每個單字首字母大寫
+  toDisplayFormat: (text) => {
+    if (!text) return '';
+    return text
+      .split(/[_\s-]+/)  // 分割所有可能的分隔符
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   },
 
-  // 路由格式：全小寫連字號
-  toRouteFormat: (text) => {
-    return format.toStorageFormat(text);
-  },
-
-  // 比對格式：全小寫，移除所有分隔符號
+  // 比對格式：移除所有分隔符
   toCompareFormat: (text) => {
+    if (!text) return '';
     return text
       .toLowerCase()
       .trim()
-      .replace(/[-\s_]+/g, '');
+      .replace(/[_\s-]+/g, '');
   }
 };

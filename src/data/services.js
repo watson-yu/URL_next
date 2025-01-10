@@ -1,11 +1,11 @@
 export const services = {
   types: {
-    "hair-salon": {
+    "hair_salon": {
       displayName: "Hair Salon",
       color: "grape",
-      services: ["haircut", "hair-coloring"]
+      services: ["haircut", "hair_coloring"]
     },
-    "beauty-salon": {
+    "beauty_salon": {
       displayName: "Beauty Salon",
       color: "pink",
       services: ["facial", "manicure", "pedicure"]
@@ -13,7 +13,7 @@ export const services = {
     "barbershop": {
       displayName: "Barbershop",
       color: "blue",
-      services: ["haircut", "shaving", "beard-trimming"]
+      services: ["haircut", "shaving", "beard_trimming"]
     }
   }
 };
