@@ -65,6 +65,7 @@ export default function ServiceDistrictPage() {
 
   const country = locationUtils.getCountryForCity(formattedCity);
 
+  // 過濾符合條件的商家
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
     .filter(business => 
       business.type === type && 
@@ -135,12 +136,7 @@ export default function ServiceDistrictPage() {
         </Group>
       </Box>
 
-      <BusinessGrid 
-        businesses={filteredBusinesses}
-        currentType={type}
-        city={city}
-        district={district}
-      />
+      <BusinessGrid businesses={filteredBusinesses} />
     </Container>
   );
 }

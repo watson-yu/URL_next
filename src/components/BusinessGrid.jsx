@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { SimpleGrid, Button, Stack, Text } from '@mantine/core';
 import BusinessCard from './BusinessCard';
-import AlsoAvailable from './AlsoAvailable';
 
-export default function BusinessGrid({ businesses, currentType, city, district }) {
-  const ITEMS_PER_PAGE = 4;
+export default function BusinessGrid({ businesses }) {
+  const ITEMS_PER_PAGE = 4; // 一次顯示4個商家（2排）
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   
   if (!businesses || businesses.length === 0) {
@@ -47,14 +46,6 @@ export default function BusinessGrid({ businesses, currentType, city, district }
         >
           Show More
         </Button>
-      )}
-
-      {currentType && (
-        <AlsoAvailable 
-          currentType={currentType}
-          city={city}
-          district={district}
-        />
       )}
     </Stack>
   );

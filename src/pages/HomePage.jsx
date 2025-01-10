@@ -11,8 +11,11 @@ import { services } from '../data/services';
 
 export default function HomePage() {
   const navigate = useNavigate();
+
+  // 從 services.js 動態獲取所有服務類型
   const types = Object.keys(services.types);
 
+  // 獲取所有商家並添加位置信息
   const allBusinesses = [];
   Object.entries(businesses).forEach(([country, cities]) => {
     Object.entries(cities).forEach(([city, districts]) => {
@@ -35,7 +38,7 @@ export default function HomePage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={[]} />
       <Title order={1} align="center" mb="xl">
-        Hair & Beauty Services Directory
+        Hair Services Directory
       </Title>
       <UnifiedSearchBar />
 

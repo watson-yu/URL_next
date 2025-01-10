@@ -42,6 +42,7 @@ export default function CityPage() {
 
   const country = locationUtils.getCountryForCity(formattedCity);
 
+  // 過濾符合條件的商家
   const filteredBusinesses = [];
   Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
@@ -64,22 +65,43 @@ export default function CityPage() {
       });
   });
 
+  // 根據選中的服務更新麵包屑
   const breadcrumbItems = [
     {
       label: typeInfo?.displayName,
       path: generatePath.type(type)
-    },
-    {
-      label: formattedCity,
-      path: generatePath.city(type, city)
     }
   ];
+
+  if (selectedService) {
+    // 如果選中了服務，顯示 "服務 - 城市" 格式
+    breadcrumbItems.push({
+      label: `${format.toDisplayFormat(selectedService)} - ${formattedCity}`,
+      path: generatePath.serviceCity(type, selectedService, city)
+    });
+  } else {
+    // 如果沒有選中服務，只顯示城市
+    breadcrumbItems.push({
+      label: formattedCity,
+      path: generatePath.city(type, city)
+    });
+  }
+
+  // 處理服務選擇
+  const handleServiceClick = (service) => {
+    if (selectedService === service) {
+      setSelectedService(null);
+    } else {
+      setSelectedService(service);
+    }
+  };
 
   return (
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
         {typeInfo?.displayName} in {formattedCity}
+        {selectedService && ` - ${format.toDisplayFormat(selectedService)}`}
       </Title>
       <UnifiedSearchBar />
       
@@ -102,15 +124,23 @@ export default function CityPage() {
             padding: '4px',
           }}
         >
+          {/* 主要類型按鈕 */}
+          <Button
+            variant="filled"
+            color={typeInfo?.color || 'blue'}
+            onClick={() => navigate(generatePath.type(type))}
+            sx={{ flexShrink: 0 }}
+          >
+            {typeInfo?.displayName}
+          </Button>
+
+          {/* 服務細項按鈕 */}
           {typeInfo?.services.map((service) => (
             <Button
               key={service}
               variant={selectedService === service ? "filled" : "light"}
-              onClick={() => navigate(generatePath.serviceCity(
-                type,
-                format.toStorageFormat(service),
-                city
-              ))}
+              color={selectedService === service ? typeInfo?.color : undefined}
+              onClick={() => handleServiceClick(service)}
               sx={{ flexShrink: 0 }}
             >
               {format.toDisplayFormat(service)}
@@ -119,11 +149,7 @@ export default function CityPage() {
         </Group>
       </Box>
 
-      <BusinessGrid 
-        businesses={filteredBusinesses}
-        currentType={type}
-        city={city}
-      />
+      <BusinessGrid businesses={filteredBusinesses} />
     </Container>
   );
 }
