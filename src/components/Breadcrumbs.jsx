@@ -7,19 +7,7 @@ import { services } from '../data/services';
 
 export default function Breadcrumbs({ items }) {
   const processedItems = items.map(item => {
-    if (item.path.includes('/home/')) {
-      const pathParts = item.path.split('/').filter(Boolean);
-      const typeService = pathParts[1];
-      const { type, service } = parseTypeService(typeService);
-      const typeInfo = services.types[type];
-
-      if (service) {
-        return {
-          ...item,
-          label: `${format.toDisplayFormat(service)} in ${item.label}`
-        };
-      }
-    }
+    // Don't modify the label if it's already provided
     return item;
   });
 

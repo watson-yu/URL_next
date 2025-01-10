@@ -18,7 +18,23 @@ export default function BusinessGrid({ businesses }) {
   const city = pathParts[2];
   const district = pathParts[3];
 
-  // ... (renderBusinessGrid 函數保持不變)
+  const renderBusinessGrid = () => {
+    return (
+      <SimpleGrid 
+        cols={2} 
+        spacing="md" 
+        breakpoints={[{ maxWidth: 'sm', cols: 1 }]}
+      >
+        {businesses.slice(0, displayCount).map((business) => (
+          <BusinessCard 
+            key={business.id} 
+            business={business} 
+            location={business.location}
+          />
+        ))}
+      </SimpleGrid>
+    );
+  };
 
   if (!type || pathParts.length <= 1) {
     return (

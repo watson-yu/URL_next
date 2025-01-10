@@ -14,7 +14,7 @@ export default function CityPage() {
   const location = useLocation();
   
   const [, , typeService, city] = location.pathname.split('/');
-  const { type, service } = parseTypeService(typeService);
+  const { type } = parseTypeService(typeService);
   
   const formattedCity = format.toDisplayFormat(city);
   const typeInfo = services.types[type];
@@ -42,17 +42,11 @@ export default function CityPage() {
 
   const country = locationUtils.getCountryForCity(formattedCity);
 
-  // 過濾符合條件的商家
+  // Filter businesses
   const filteredBusinesses = [];
   Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
-      .filter(business => {
-        const typeMatch = business.type === type;
-        if (service) {
-          return typeMatch && business.services.includes(service);
-        }
-        return typeMatch;
-      })
+      .filter(business => business.type === type)
       .forEach(business => {
         filteredBusinesses.push({
           ...business,
@@ -67,12 +61,12 @@ export default function CityPage() {
 
   const breadcrumbItems = [
     {
-      label: typeInfo?.displayName,
+      label: typeInfo?.displayName || format.toDisplayFormat(type),
       path: generatePath.type(type)
     },
     {
       label: formattedCity,
-      path: generatePath.city(typeService, city)
+      path: location.pathname
     }
   ];
 
@@ -80,10 +74,7 @@ export default function CityPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {service ? 
-          `${format.toDisplayFormat(service)} at ${typeInfo?.displayName} in ${formattedCity}` :
-          `${typeInfo?.displayName} in ${formattedCity}`
-        }
+        {typeInfo?.displayName} in {formattedCity}
       </Title>
       <UnifiedSearchBar />
       
@@ -109,10 +100,7 @@ export default function CityPage() {
               ))}
               sx={{ flexShrink: 0 }}
             >
-              {service ? 
-                `${format.toDisplayFormat(service)} in ${format.toDisplayFormat(district)}` :
-                `${typeInfo?.displayName} in ${format.toDisplayFormat(district)}`
-              }
+              {`${typeInfo?.displayName} in ${format.toDisplayFormat(district)}`}
             </Button>
           ))}
         </Group>

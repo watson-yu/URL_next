@@ -2,32 +2,65 @@ import { locations } from '../data/locations';
 import { services } from '../data/services';
 import { format } from './format';
 
-// 解析 typeService 參數
+// Parse typeService parameter
 const parseTypeService = (typeService) => {
   if (!typeService) {
     return { type: null, service: null };
   }
-  const parts = typeService.split('-');
-  return {
-    type: format.toStorageFormat(parts[0]),
-    service: parts.length > 1 ? format.toStorageFormat(parts[1]) : null
-  };
+  
+  // Handle spaces in the URL by replacing hyphens back to spaces before splitting
+  const decodedType = decodeURIComponent(typeService).replace(/-/g, ' ');
+  const parts = decodedType.split(' ');
+  
+  // If it's a compound type like "hair salon", join all parts except the last one
+  const type = format.toStorageFormat(parts.join(' '));
+  const service = null; // Since we're not using service in the URL anymore
+
+  return { type, service };
 };
 
-// ... (其他輔助函數保持不變)
+// Location utility functions
+const getAllCities = () => {
+  return Object.values(locations.countries)
+    .flatMap(country => Object.keys(country.cities));
+};
 
-// 路徑生成函數
+const getDistrictsForCity = (city) => {
+  for (const country of Object.values(locations.countries)) {
+    if (city in country.cities) {
+      return country.cities[city];
+    }
+  }
+  return [];
+};
+
+const getCountryForCity = (city) => {
+  for (const [country, data] of Object.entries(locations.countries)) {
+    if (city in data.cities) {
+      return country;
+    }
+  }
+  return null;
+};
+
+const isCityValid = (city) => {
+  return getAllCities().includes(city);
+};
+
+const isDistrictValid = (city, district) => {
+  const districts = getDistrictsForCity(city);
+  return districts.includes(district);
+};
+
+// Path generation functions
 export const generatePath = {
-  type: (type) => `/home/${format.toRouteFormat(type)}`,
+  type: (type) => `/home/${encodeURIComponent(format.toRouteFormat(type))}`,
   
-  typeWithService: (type, service) => 
-    `/home/${format.toRouteFormat(type)}-${format.toRouteFormat(service)}`,
+  city: (type, city) => 
+    `/home/${encodeURIComponent(format.toRouteFormat(type))}/${encodeURIComponent(format.toRouteFormat(city))}`,
   
-  city: (typeService, city) => 
-    `/home/${typeService}/${format.toRouteFormat(city)}`,
-  
-  district: (typeService, city, district) => 
-    `/home/${typeService}/${format.toRouteFormat(city)}/${format.toRouteFormat(district)}`,
+  district: (type, city, district) => 
+    `/home/${encodeURIComponent(format.toRouteFormat(type))}/${encodeURIComponent(format.toRouteFormat(city))}/${encodeURIComponent(format.toRouteFormat(district))}`,
   
   business: (id) => `/business/${id}`
 };
