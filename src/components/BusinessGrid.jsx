@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import BusinessCard from './BusinessCard';
 import { services } from '../data/services';
 import { generatePath } from '../utils/routes';
+import { format } from '../utils/format';
 
 export default function BusinessGrid({ businesses }) {
   const ITEMS_PER_PAGE = 4;
@@ -14,26 +15,30 @@ export default function BusinessGrid({ businesses }) {
   // 解析當前路徑
   const pathParts = location.pathname.split('/').filter(Boolean);
   
+  // 基礎渲染函數
+  const renderBusinessGrid = () => (
+    <SimpleGrid
+      cols={2}
+      spacing="lg"
+      breakpoints={[
+        { maxWidth: 'sm', cols: 1 }
+      ]}
+    >
+      {businesses.slice(0, displayCount).map((business, index) => (
+        <BusinessCard 
+          key={`${business.id}-${index}`}
+          business={business}
+          location={business.location}
+        />
+      ))}
+    </SimpleGrid>
+  );
+
   // 如果是首頁，不顯示type切換
   if (pathParts.length <= 1) {
     return (
       <Stack spacing="xl">
-        <SimpleGrid
-          cols={2}
-          spacing="lg"
-          breakpoints={[
-            { maxWidth: 'sm', cols: 1 }
-          ]}
-        >
-          {businesses.slice(0, displayCount).map(business => (
-            <BusinessCard 
-              key={business.id} 
-              business={business}
-              location={business.location}
-            />
-          ))}
-        </SimpleGrid>
-
+        {renderBusinessGrid()}
         {displayCount < businesses.length && (
           <Button 
             variant="light" 
@@ -48,11 +53,34 @@ export default function BusinessGrid({ businesses }) {
   }
 
   const currentType = pathParts[1];
-  const secondPart = pathParts[2];
+  const secondPart = decodeURIComponent(pathParts[2] || '');
   
-  // 判斷是否包含service
-  const hasService = secondPart?.includes('-');
-  const currentCity = hasService ? secondPart?.split('-').pop() : secondPart;
+  // Debug: 輸出當前路徑資訊
+  console.log('Current path parts:', {
+    pathParts,
+    currentType,
+    secondPart,
+    fullPath: location.pathname
+  });
+
+  // 解析城市名稱
+  let currentCity = '';
+  if (secondPart) {
+    if (secondPart.includes('-')) {
+      // 從 service-city 格式中提取城市名稱
+      const parts = secondPart.split('-');
+      currentCity = parts[parts.length - 1]; // 確保取最後一個部分
+      console.log('Extracted city from service-city:', {
+        secondPart,
+        parts,
+        currentCity
+      });
+    } else {
+      // 純城市名稱
+      currentCity = secondPart;
+      console.log('Pure city:', currentCity);
+    }
+  }
 
   if (!businesses || businesses.length === 0) {
     return (
@@ -63,35 +91,28 @@ export default function BusinessGrid({ businesses }) {
   }
 
   const handleTypeChange = (newType) => {
-    if (hasService && currentCity) {
-      // 如果當前頁面有service，切換時轉到純city頁面
-      navigate(generatePath.city(newType, currentCity));
-    } else if (currentCity) {
-      // 保持在相同city
-      navigate(generatePath.city(newType, currentCity));
+    if (currentCity) {
+      // 無論是否有 service，都轉到純 city 頁面
+      const formattedCity = format.toRouteFormat(currentCity);
+      const newPath = generatePath.city(newType, formattedCity);
+      console.log('Navigation details:', {
+        currentCity,
+        formattedCity,
+        newType,
+        newPath,
+        originalPath: location.pathname
+      });
+      navigate(newPath);
     } else {
-      // 純type頁面直接切換
-      navigate(generatePath.type(newType));
+      const newPath = generatePath.type(newType);
+      console.log('Navigating to type:', newPath);
+      navigate(newPath);
     }
   };
 
   return (
     <Stack spacing="xl">
-      <SimpleGrid
-        cols={2}
-        spacing="lg"
-        breakpoints={[
-          { maxWidth: 'sm', cols: 1 }
-        ]}
-      >
-        {businesses.slice(0, displayCount).map(business => (
-          <BusinessCard 
-            key={business.id} 
-            business={business}
-            location={business.location}
-          />
-        ))}
-      </SimpleGrid>
+      {renderBusinessGrid()}
 
       <Stack spacing="md" align="center">
         {displayCount < businesses.length && (
@@ -119,7 +140,7 @@ export default function BusinessGrid({ businesses }) {
               .filter(([type]) => type !== currentType)
               .map(([type, { displayName, color }]) => (
                 <Button
-                  key={type}
+                  key={`type-switch-${type}`}
                   variant="light"
                   color={color}
                   onClick={() => handleTypeChange(type)}
