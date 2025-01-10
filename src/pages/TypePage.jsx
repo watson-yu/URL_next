@@ -14,17 +14,14 @@ export default function TypePage() {
   const location = useLocation();
   const [, , type] = location.pathname.split('/');
   
-  // 從 services.js 獲取類型資訊
   const typeInfo = services.types[type];
   
-  // 獲取所有城市
   const cities = [...new Set(
     Object.values(businesses).flatMap(country => 
       Object.keys(country)
     )
   )];
 
-  // 過濾符合當前type的所有商家
   const filteredBusinesses = [];
   Object.entries(businesses).forEach(([country, countryCities]) => {
     Object.entries(countryCities).forEach(([city, districts]) => {
@@ -92,7 +89,10 @@ export default function TypePage() {
         </Group>
       </Box>
 
-      <BusinessGrid businesses={filteredBusinesses} />
+      <BusinessGrid 
+        businesses={filteredBusinesses}
+        currentType={type}
+      />
     </Container>
   );
 }

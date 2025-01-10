@@ -17,9 +17,9 @@ export default function DistrictPage() {
   
   const formattedCity = format.toDisplayFormat(city);
   const formattedDistrict = format.toDisplayFormat(district);
-  const formattedType = format.toDisplayFormat(type);
+  const typeInfo = services.types[type];
 
-  // 驗證城市和區域是否存在
+  // Validate city and district
   if (!locationUtils.isCityValid(formattedCity)) {
     return (
       <Container size="md" py="xl">
@@ -31,7 +31,7 @@ export default function DistrictPage() {
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {formattedType}
+            Back to {typeInfo?.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -63,9 +63,8 @@ export default function DistrictPage() {
   }
 
   const country = locationUtils.getCountryForCity(formattedCity);
-  const typeServices = services.types[type]?.services || [];
 
-  // 過濾當前district的商家列表
+  // Filter businesses for current district
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
     .filter(business => business.type === type)
     .map(business => ({
@@ -79,7 +78,7 @@ export default function DistrictPage() {
 
   const breadcrumbItems = [
     {
-      label: formattedType,
+      label: typeInfo?.displayName,
       path: generatePath.type(type)
     },
     {
@@ -96,7 +95,7 @@ export default function DistrictPage() {
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {formattedType} in {formattedDistrict}, {formattedCity}
+        {typeInfo?.displayName} in {formattedDistrict}, {formattedCity}
       </Title>
       <UnifiedSearchBar />
       
@@ -124,10 +123,10 @@ export default function DistrictPage() {
             onClick={() => navigate(generatePath.city(type, city))}
             sx={{ flexShrink: 0 }}
           >
-            {formattedType} in {formattedCity}
+            {typeInfo?.displayName} in {formattedCity}
           </Button>
 
-          {typeServices.map((service) => (
+          {typeInfo?.services.map((service) => (
             <Button
               key={service}
               variant="light"
@@ -145,7 +144,12 @@ export default function DistrictPage() {
         </Group>
       </Box>
 
-      <BusinessGrid businesses={filteredBusinesses} />
+      <BusinessGrid 
+        businesses={filteredBusinesses}
+        currentType={type}
+        city={city}
+        district={district}
+      />
     </Container>
   );
 }

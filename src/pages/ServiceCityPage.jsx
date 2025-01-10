@@ -43,7 +43,6 @@ export default function ServiceCityPage() {
 
   const country = locationUtils.getCountryForCity(formattedCity);
 
-  // 過濾符合條件的商家
   const filteredBusinesses = [];
   Object.entries(businesses[country][formattedCity]).forEach(([district, businessList]) => {
     businessList
@@ -101,12 +100,10 @@ export default function ServiceCityPage() {
             padding: '4px',
           }}
         >
-          {/* 只顯示服務按鈕 */}
           {typeInfo?.services.map((serviceOption) => (
             <Button
               key={serviceOption}
               variant={currentService === serviceOption ? "filled" : "light"}
-              color={typeInfo?.color}
               onClick={() => navigate(generatePath.serviceCity(
                 type,
                 format.toStorageFormat(serviceOption),
@@ -120,7 +117,11 @@ export default function ServiceCityPage() {
         </Group>
       </Box>
 
-      <BusinessGrid businesses={filteredBusinesses} />
+      <BusinessGrid 
+        businesses={filteredBusinesses}
+        currentType={type}
+        city={city}
+      />
     </Container>
   );
 }
