@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Paper, Stack, Select, Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { businesses } from '../data/businesses';
-import { generatePath } from '../routes/paths';
+import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
+import { services } from '../data/services';
 
 export default function SearchBar({ initialType, initialCity, initialDistrict, initialService, onFilter }) {
   const navigate = useNavigate();
@@ -17,6 +18,32 @@ export default function SearchBar({ initialType, initialCity, initialDistrict, i
     setDistrict(initialDistrict || '');
     setService(initialService || '');
   }, [initialType, initialCity, initialDistrict, initialService]);
+
+  // 從 services.js 獲取所有服務類型
+  const typeOptions = Object.entries(services.types).map(([key, { displayName }]) => ({
+    value: key,
+    label: displayName
+  }));
+
+  // 從 locations.js 獲取所有城市
+  const cityOptions = locationUtils.getAllCities().map(city => ({
+    value: city.toLowerCase(),
+    label: city
+  }));
+
+  // 從 locations.js 獲取選定城市的區域
+  const districtOptions = city ? 
+    locationUtils.getDistrictsForCity(formatDisplayText(city)).map(district => ({
+      value: district.toLowerCase(),
+      label: district
+    })) : [];
+
+  // 從 services.js 獲取選定類型的服務
+  const serviceOptions = type ? 
+    services.types[type]?.services.map(service => ({
+      value: service.toLowerCase().replace(/ /g, '-'),
+      label: service
+    })) : [];
 
   const handleSearch = () => {
     if (onFilter) {
@@ -43,7 +70,7 @@ export default function SearchBar({ initialType, initialCity, initialDistrict, i
         <Select
           label="Location Type"
           placeholder="Select type"
-          data={['Beauty Salon', 'Barbershop']}
+          data={typeOptions}
           value={type}
           onChange={setType}
         />
@@ -51,15 +78,16 @@ export default function SearchBar({ initialType, initialCity, initialDistrict, i
         <Select
           label="Service"
           placeholder="Select service"
-          data={['Haircut', 'Hair Coloring', 'Shaving']}
+          data={serviceOptions}
           value={service}
           onChange={setService}
+          disabled={!type}
         />
 
         <Select
           label="City"
           placeholder="Select city"
-          data={['Taipei', 'Kaohsiung', 'Tokyo', 'Kyoto']}
+          data={cityOptions}
           value={city}
           onChange={(value) => {
             setCity(value);
@@ -71,7 +99,7 @@ export default function SearchBar({ initialType, initialCity, initialDistrict, i
         <Select
           label="District"
           placeholder="Select district"
-          data={city ? Object.keys(businesses[city === 'Taipei' || city === 'Kaohsiung' ? 'Taiwan' : 'Japan'][city]) : []}
+          data={districtOptions}
           value={district}
           onChange={setDistrict}
           disabled={!city}

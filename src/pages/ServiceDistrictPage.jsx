@@ -1,40 +1,79 @@
 import React from 'react';
-import { Container, Title, Button, Group } from '@mantine/core';
+import { Container, Title, Button, Group, Text, Box } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
-import { generatePath } from '../utils/routes';
+import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
 
 export default function ServiceDistrictPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // 從URL路徑解析參數
   const [, , type, serviceCityPath, serviceDistrictPath] = location.pathname.split('/');
   const [service, city] = serviceCityPath.split('-');
   const [, district] = serviceDistrictPath.split('-');
   
-  const formatDisplayText = (text) => {
-    return text
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
   const formattedCity = formatDisplayText(city);
   const formattedDistrict = formatDisplayText(district);
   const formattedType = formatDisplayText(type);
   const formattedService = formatDisplayText(service);
-  const country = formattedCity === 'Taipei' || formattedCity === 'Kaohsiung' ? 'Taiwan' : 'Japan';
 
-  // 過濾符合條件的商家
+  // 驗證城市和區域是否存在
+  if (!locationUtils.isCityValid(formattedCity)) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          City Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The city "{formattedCity}" does not exist in our directory.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate(generatePath.type(type))}>
+            Back to {formattedType}
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  if (!locationUtils.isDistrictValid(formattedCity, formattedDistrict)) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          District Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The district "{formattedDistrict}" does not exist in {formattedCity}.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate(generatePath.serviceCity(type, service, city))}>
+            Back to {formattedService} in {formattedCity}
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  const country = locationUtils.getCountryForCity(formattedCity);
+
+  // 過濾符合條件的商家，注意大小寫問題
   const filteredBusinesses = (businesses[country][formattedCity][formattedDistrict] || [])
-    .filter(business => 
-      business.type.toLowerCase() === formattedType.toLowerCase() &&
-      business.services.includes(formattedService)
-    )
+    .filter(business => {
+      const businessType = business.type.toLowerCase().replace(/ /g, '-');
+      const hasService = business.services.some(s => 
+        s.toLowerCase() === formattedService.toLowerCase()
+      );
+      return businessType === type.toLowerCase() && hasService;
+    })
     .map(business => ({
       ...business,
       location: {
@@ -71,15 +110,34 @@ export default function ServiceDistrictPage() {
       </Title>
       <UnifiedSearchBar />
       
-      {/* 返回按鈕 */}
-      <Group position="center" spacing="sm" mb="xl">
-        <Button
-          variant="light"
-          onClick={() => navigate(generatePath.serviceCity(type, service, city))}
+      <Box 
+        sx={{
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          marginBottom: 'xl',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          '-ms-overflow-style': 'none',
+          'scrollbarWidth': 'none'
+        }}
+      >
+        <Group 
+          spacing="sm" 
+          noWrap
+          sx={{
+            padding: '4px',
+          }}
         >
-          {formattedService} in {formattedCity}
-        </Button>
-      </Group>
+          <Button
+            variant="light"
+            onClick={() => navigate(generatePath.serviceCity(type, service, city))}
+            sx={{ flexShrink: 0 }}
+          >
+            {formattedService} in {formattedCity}
+          </Button>
+        </Group>
+      </Box>
 
       <BusinessGrid businesses={filteredBusinesses} />
     </Container>

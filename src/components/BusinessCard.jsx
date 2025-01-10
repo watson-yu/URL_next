@@ -1,9 +1,13 @@
 import React from 'react';
-import { Card, Text, Badge, Group, Stack, Divider } from '@mantine/core';
+import { Card, Text, Badge, Stack } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { services } from '../data/services';
+import { formatDisplayText } from '../utils/routes';
 
 export default function BusinessCard({ business, location }) {
   const navigate = useNavigate();
+  
+  const typeInfo = services.types[business.type];
 
   return (
     <Card 
@@ -20,35 +24,16 @@ export default function BusinessCard({ business, location }) {
         </Text>
 
         <Text size="sm" color="dimmed">
-          {location.district}, {location.city}, {location.country}
+          {formatDisplayText(location.district)}, {formatDisplayText(location.city)}, {location.country}
         </Text>
 
         <Badge 
-          color={business.type === 'Beauty Salon' ? 'pink' : 'blue'} 
+          color={typeInfo?.color || 'gray'}
           variant="light"
           size="lg"
         >
-          {business.type}
+          {business.displayName || typeInfo?.displayName || formatDisplayText(business.type)}
         </Badge>
-
-        <Divider my="xs" />
-
-        <Text size="sm" weight={500} color="dimmed">
-          Services:
-        </Text>
-        <Group spacing={8}>
-          {business.services.map(service => (
-            <Badge 
-              key={service} 
-              variant="outline"
-              color={service === 'Haircut' ? 'grape' : 
-                     service === 'Hair Coloring' ? 'pink' : 
-                     'blue'}
-            >
-              {service}
-            </Badge>
-          ))}
-        </Group>
       </Stack>
     </Card>
   );

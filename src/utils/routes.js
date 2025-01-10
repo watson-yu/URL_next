@@ -1,44 +1,60 @@
-// 路由配置和生成工具
+import { locations } from '../data/locations';
+import { services } from '../data/services';
+import { format } from './format';
+
+// 從 locations.js 動態獲取所有城市
+const getAllCities = () => {
+  return Object.values(locations.countries).flatMap(country => 
+    Object.keys(country.cities)
+  );
+};
+
+// 從 locations.js 獲取指定城市的所有區域
+const getDistrictsForCity = (city) => {
+  const formattedCity = format.toDisplayFormat(city);
+  for (const country of Object.values(locations.countries)) {
+    if (country.cities[formattedCity]) {
+      return country.cities[formattedCity];
+    }
+  }
+  return [];
+};
+
+// 路由配置
 export const ROUTES = {
-  TYPES: ['beauty-salon', 'barbershop'],
-  CITIES: ['taipei', 'kaohsiung', 'tokyo', 'kyoto'],
-  DISTRICTS: {
-    taipei: ['xinyi', 'zhongshan'],
-    kaohsiung: ['lingya', 'gushan'],
-    tokyo: ['setagaya', 'nerima'],
-    kyoto: ['fushimi', 'nakagyo']
+  get TYPES() {
+    return Object.keys(services.types).map(format.toStorageFormat);
   },
-  SERVICES: {
-    'beauty-salon': ['haircut', 'hair-coloring'],
-    'barbershop': ['haircut', 'shaving']
+  get CITIES() {
+    return getAllCities().map(format.toStorageFormat);
+  },
+  get DISTRICTS() {
+    const districts = {};
+    getAllCities().forEach(city => {
+      districts[format.toStorageFormat(city)] = 
+        getDistrictsForCity(city).map(format.toStorageFormat);
+    });
+    return districts;
+  },
+  get SERVICES() {
+    return Object.fromEntries(
+      Object.entries(services.types).map(([type, { services }]) => [
+        format.toStorageFormat(type),
+        services.map(format.toStorageFormat)
+      ])
+    );
   }
 };
 
 // 路徑生成函數
 export const generatePath = {
-  type: (type) => `/home/${type}`,
-  
-  city: (type, city) => `/home/${type}/${city}`,
-  
+  type: (type) => `/home/${format.toRouteFormat(type)}`,
+  city: (type, city) => `/home/${format.toRouteFormat(type)}/${format.toRouteFormat(city)}`,
   district: (type, city, district) => 
-    `/home/${type}/${city}/${district}`,
-  
+    `/home/${format.toRouteFormat(type)}/${format.toRouteFormat(city)}/${format.toRouteFormat(district)}`,
   serviceCity: (type, service, city) => 
-    `/home/${type}/${service}-${city}`,
-  
+    `/home/${format.toRouteFormat(type)}/${format.toRouteFormat(service)}-${format.toRouteFormat(city)}`,
   serviceDistrict: (type, service, city, district) => 
-    `/home/${type}/${service}-${city}/${service}-${district}`,
-  
+    `/home/${format.toRouteFormat(type)}/${format.toRouteFormat(service)}-${format.toRouteFormat(city)}/${format.toRouteFormat(service)}-${format.toRouteFormat(district)}`,
   business: (id) => `/business/${id}`
 };
-
-// URL 格式化工具
-export const formatUrlSegment = (text) => 
-  text.toLowerCase().replace(/ /g, '-');
-
-// 顯示文字格式化工具
-export const formatDisplayText = (text) => 
-  text
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');

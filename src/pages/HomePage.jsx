@@ -1,11 +1,12 @@
 import React from 'react';
-import { Container, Title, Button, Group } from '@mantine/core';
+import { Container, Title, Button, Group, Box } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import BusinessGrid from '../components/BusinessGrid';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { businesses } from '../data/businesses';
-import { ROUTES, generatePath } from '../utils/routes';
+import { generatePath } from '../utils/routes';
+import { services } from '../data/services';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ export default function HomePage() {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
+
+  // 從 services.js 動態獲取所有服務類型
+  const types = Object.entries(services.types);
 
   // 獲取所有商家並添加位置信息
   const allBusinesses = [];
@@ -44,18 +48,37 @@ export default function HomePage() {
       </Title>
       <UnifiedSearchBar />
 
-      {/* Type按鈕列表 */}
-      <Group position="center" spacing="sm" mb="xl">
-        {ROUTES.TYPES.map((type) => (
-          <Button
-            key={type}
-            variant="light"
-            onClick={() => navigate(generatePath.type(type))}
-          >
-            {formatDisplayText(type)}
-          </Button>
-        ))}
-      </Group>
+      <Box 
+        sx={{
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          marginBottom: 'xl',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          '-ms-overflow-style': 'none',
+          'scrollbarWidth': 'none'
+        }}
+      >
+        <Group 
+          spacing="sm" 
+          noWrap
+          sx={{
+            padding: '4px',
+          }}
+        >
+          {types.map(([key, { displayName }]) => (
+            <Button
+              key={key}
+              variant="light"
+              onClick={() => navigate(generatePath.type(key))}
+              sx={{ flexShrink: 0 }}
+            >
+              {displayName}
+            </Button>
+          ))}
+        </Group>
+      </Box>
 
       <BusinessGrid businesses={allBusinesses} />
     </Container>
