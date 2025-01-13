@@ -2,14 +2,16 @@ export const locations = {
   countries: {
     "Taiwan": {
       cities: {
-        "Taipei": ["Xinyi", "Zhongshan"],
-        "Kaohsiung": ["Lingya", "Gushan"]
+        "Taipei": ["Xinyi", "Zhongshan", "Daan"],
+        "Kaohsiung": ["Lingya", "Gushan", "Sanmin"],
+        "Taichung": ["Nantun", "Beitun", "Xitun"] 
       }
     },
     "Japan": {
       cities: {
-        "Tokyo": ["Setagaya", "Nerima"],
-        "Kyoto": ["Fushimi", "Nakagyo"]
+        "Tokyo": ["Setagaya", "Nerima", "Shibuya"],
+        "Kyoto": ["Fushimi", "Nakagyo", "Shimogyo"],
+        "Osaka": ["Kita", "Naniwa", "Tennoji"] 
       }
     }
   }
