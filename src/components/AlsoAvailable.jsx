@@ -7,7 +7,7 @@ import { generatePath } from '../utils/routes';
 export default function AlsoAvailable({ currentType, city, district }) {
   const navigate = useNavigate();
   
-  // Filter out current type
+  // 過濾掉當前類型
   const otherTypes = Object.entries(services.types)
     .filter(([type]) => type !== currentType);
 
@@ -24,9 +24,9 @@ export default function AlsoAvailable({ currentType, city, district }) {
   };
 
   return (
-    <Stack spacing="xs" mt="xl">
+    <Stack spacing="xs" mb="xl">
       <Text size="sm" weight={500} color="dimmed">
-        Also Available
+        Also Available in {district ? `${district}, ${city}` : city}
       </Text>
       <Group spacing="sm">
         {otherTypes.map(([type, info]) => (

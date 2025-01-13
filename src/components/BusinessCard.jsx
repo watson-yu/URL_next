@@ -3,11 +3,20 @@ import { Card, Text, Badge, Stack } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services';
 import { format } from '../utils/format';
+import { generatePath } from '../utils/routes';
 
-export default function BusinessCard({ business, location }) {
+export default function BusinessCard({ business }) {
   const navigate = useNavigate();
-  
   const typeInfo = services.types[business.type];
+
+  const handleClick = () => {
+    navigate(generatePath.businessDetail(
+      business.type,
+      business.location.city,
+      business.location.district,
+      business.id
+    ));
+  };
 
   return (
     <Card 
@@ -16,7 +25,7 @@ export default function BusinessCard({ business, location }) {
       radius="md" 
       withBorder
       sx={{ cursor: 'pointer' }}
-      onClick={() => navigate(`/business/${business.id}`)}
+      onClick={handleClick}
     >
       <Stack spacing="xs">
         <Text weight={500} size="lg">
@@ -24,9 +33,9 @@ export default function BusinessCard({ business, location }) {
         </Text>
 
         <Text size="sm" color="dimmed">
-          {format.toDisplayFormat(location.district)}, 
-          {format.toDisplayFormat(location.city)}, 
-          {location.country}
+          {format.toDisplay(business.location.district)}, 
+          {format.toDisplay(business.location.city)}, 
+          {business.location.country}
         </Text>
 
         <Badge 
@@ -34,7 +43,7 @@ export default function BusinessCard({ business, location }) {
           variant="light"
           size="lg"
         >
-          {business.displayName || typeInfo?.displayName || format.toDisplayFormat(business.type)}
+          {typeInfo?.displayName || format.toDisplay(business.type)}
         </Badge>
       </Stack>
     </Card>

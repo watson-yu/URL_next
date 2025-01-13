@@ -1,73 +1,52 @@
 import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Title, Button, Group, Box } from '@mantine/core';
-import { useLocation, useNavigate } from 'react-router-dom';
 import UnifiedSearchBar from '../components/UnifiedSearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
-import { businesses } from '../data/businesses';
-import { generatePath, parseTypeService } from '../utils/routes';
+import { getBusinessesByType } from '../data/businesses';
+import { generatePath } from '../utils/routes';
 import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function TypePage() {
+  console.log('TypePage rendering'); // 調試用
   const navigate = useNavigate();
-  const location = useLocation();
-  const [, , typeService] = location.pathname.split('/');
-  const { type, service } = parseTypeService(typeService);
+  const { type } = useParams();
+  
+  console.log('TypePage params:', { type }); // 調試用
   
   const typeInfo = services.types[type];
-  
-  const cities = [...new Set(
-    Object.values(businesses).flatMap(country => 
-      Object.keys(country)
-    )
-  )];
+  console.log('TypeInfo:', typeInfo); // 調試用
 
-  // 過濾符合當前type和service的所有商家
-  const filteredBusinesses = [];
-  Object.entries(businesses).forEach(([country, countryCities]) => {
-    Object.entries(countryCities).forEach(([city, districts]) => {
-      Object.entries(districts).forEach(([district, businessList]) => {
-        businessList
-          .filter(business => {
-            const typeMatch = business.type === type;
-            if (service) {
-              return typeMatch && business.services.includes(service);
-            }
-            return typeMatch;
-          })
-          .forEach(business => {
-            filteredBusinesses.push({
-              ...business,
-              location: {
-                country,
-                city,
-                district
-              }
-            });
-          });
-      });
-    });
-  });
+  const businesses = getBusinessesByType(type);
+  console.log('Businesses:', businesses); // 調試用
+  
+  // 獲取所有可用的城市
+  const cities = [...new Set(businesses.map(b => b.location.city))].sort();
+  console.log('Available cities:', cities); // 調試用
 
   const breadcrumbItems = [
     {
-      label: typeInfo?.displayName || format.toDisplayFormat(type),
+      label: typeInfo?.displayName,
       path: generatePath.type(type)
     }
   ];
+
+  const handleCityClick = (city) => {
+    console.log('City click:', { type, city }); // 調試用
+    navigate(generatePath.city(type, city));
+  };
 
   return (
     <Container size="md" py="xl">
       <Breadcrumbs items={breadcrumbItems} />
       <Title order={1} align="center" mb="md">
-        {service ? 
-          `${format.toDisplayFormat(service)} at ${typeInfo?.displayName}` :
-          typeInfo?.displayName
-        }
+        {typeInfo?.displayName}
       </Title>
       <UnifiedSearchBar />
       
+      {/* 城市按鈕 */}
       <Box 
         sx={{
           overflowX: 'auto',
@@ -83,19 +62,16 @@ export default function TypePage() {
             <Button
               key={city}
               variant="light"
-              onClick={() => navigate(generatePath.city(typeService, format.toRouteFormat(city)))}
+              onClick={() => handleCityClick(city)}
               sx={{ flexShrink: 0 }}
             >
-              {service ? 
-                `${format.toDisplayFormat(service)} in ${format.toDisplayFormat(city)}` :
-                `${typeInfo?.displayName} in ${format.toDisplayFormat(city)}`
-              }
+              {`${typeInfo?.displayName} in ${format.toDisplay(city)}`}
             </Button>
           ))}
         </Group>
       </Box>
 
-      <BusinessGrid businesses={filteredBusinesses} />
+      <BusinessGrid businesses={businesses} />
     </Container>
   );
 }

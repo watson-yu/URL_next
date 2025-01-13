@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Paper, Stack, Select, Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { businesses } from '../data/businesses';
-import { generatePath, locationUtils, formatDisplayText } from '../utils/routes';
+import { generatePath } from '../utils/routes';
 import { services } from '../data/services';
+import { format } from '../utils/format';
+import { locationUtils } from '../utils/routes';
 
 export default function SearchBar({ initialType, initialCity, initialDistrict, initialService, onFilter }) {
   const navigate = useNavigate();
@@ -25,24 +26,24 @@ export default function SearchBar({ initialType, initialCity, initialDistrict, i
     label: displayName
   }));
 
-  // 從 locations.js 獲取所有城市
+  // 獲取所有城市
   const cityOptions = locationUtils.getAllCities().map(city => ({
-    value: city.toLowerCase(),
-    label: city
+    value: city,
+    label: format.toDisplay(city)
   }));
 
-  // 從 locations.js 獲取選定城市的區域
+  // 獲取選定城市的區域
   const districtOptions = city ? 
-    locationUtils.getDistrictsForCity(formatDisplayText(city)).map(district => ({
-      value: district.toLowerCase(),
-      label: district
+    locationUtils.getDistrictsForCity(city).map(district => ({
+      value: district,
+      label: format.toDisplay(district)
     })) : [];
 
-  // 從 services.js 獲取選定類型的服務
+  // 獲取選定類型的服務
   const serviceOptions = type ? 
     services.types[type]?.services.map(service => ({
-      value: service.toLowerCase().replace(/ /g, '-'),
-      label: service
+      value: service,
+      label: format.toDisplay(service)
     })) : [];
 
   const handleSearch = () => {
