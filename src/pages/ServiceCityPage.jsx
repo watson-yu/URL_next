@@ -1,87 +1,25 @@
-// ... previous imports remain the same ...
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Container, Title, Button, Group, Text, Box } from '@mantine/core';
+import SearchBar from '../components/SearchBar';
+import Breadcrumbs from '../components/Breadcrumbs';
+import BusinessGrid from '../components/BusinessGrid';
+import { businesses } from '../data/businesses';
+import { generatePath, locationUtils, parseServiceCity } from '../utils/routes';
+import { format } from '../utils/format';
+import { services } from '../data/services';
 
 export default function ServiceCityPage() {
   const navigate = useNavigate();
   const { typeService, city } = useParams();
-  
-  // 解析 typeService 參數
-  const { type, service } = parseTypeService(typeService);
-  
-  // 驗證參數
-  if (!type || !service || !city) {
-    console.error('Invalid parameters:', { type, service, city });
-    navigate('/');
-    return null;
-  }
-  
+  console.log('ServiceCityPage params:', { typeService, city }); // Debug
+
+  const { type, service } = parseServiceCity(typeService);
+  console.log('Parsed params:', { type, service }); // Debug
+
   const typeInfo = services.types[type];
+  const businessList = businesses.getByTypeAndServiceAndCity(type, service, city);
+  console.log('Businesses found:', businessList?.length); // Debug
 
-  // 驗證商家類型
-  if (!typeInfo) {
-    return (
-      <Container size="md" py="xl">
-        <Title order={1} align="center" mb="xl">
-          Service Type Not Found
-        </Title>
-        <Text align="center" mb="xl">
-          The service type does not exist in our directory.
-        </Text>
-        <Group position="center">
-          <Button onClick={() => navigate('/')}>
-            Back to Home
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
-  // 驗證服務
-  if (!typeInfo.services.includes(service)) {
-    return (
-      <Container size="md" py="xl">
-        <Title order={1} align="center" mb="xl">
-          Service Not Found
-        </Title>
-        <Text align="center" mb="xl">
-          The service "{format.toDisplay(service)}" is not available for {typeInfo.displayName}.
-        </Text>
-        <Group position="center">
-          <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {typeInfo.displayName}
-          </Button>
-          <Button onClick={() => navigate('/')}>
-            Back to Home
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
-  // 驗證城市
-  if (!locationUtils.isCityValid(city)) {
-    return (
-      <Container size="md" py="xl">
-        <Title order={1} align="center" mb="xl">
-          City Not Found
-        </Title>
-        <Text align="center" mb="xl">
-          The city "{format.toDisplay(city)}" does not exist in our directory.
-        </Text>
-        <Group position="center">
-          <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {typeInfo.displayName}
-          </Button>
-          <Button onClick={() => navigate('/')}>
-            Back to Home
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
-  // 獲取商家數據
-  const businesses = getBusinessesByTypeAndServiceAndCity(type, service, city);
-  const districts = locationUtils.getDistrictsForCity(city);
-
-  // ... rest of the component remains the same ...
+  // ... rest of the component
 }
