@@ -10,17 +10,15 @@ export default function UnifiedSearchBar() {
   const navigate = useNavigate();
   const [value, setValue] = useState('');
 
-  // 生成搜尋建議
   const generateSuggestions = () => {
     const suggestions = [];
     
-    // 添加所有服務類型
     Object.entries(services.types).forEach(([type, info]) => {
+      // 添加服務類型
       suggestions.push({
         value: info.displayName,
         type,
-        city: null,
-        district: null
+        action: () => navigate(generatePath.type(type))
       });
 
       // 添加城市組合
@@ -29,7 +27,7 @@ export default function UnifiedSearchBar() {
           value: `${info.displayName} in ${format.toDisplay(city)}`,
           type,
           city,
-          district: null
+          action: () => navigate(generatePath.city(type, city))
         });
 
         // 添加服務組合
@@ -39,7 +37,7 @@ export default function UnifiedSearchBar() {
             type,
             service,
             city,
-            district: null
+            action: () => navigate(generatePath.serviceCity(type, service, city))
           });
         });
       });
@@ -51,17 +49,9 @@ export default function UnifiedSearchBar() {
   const suggestions = generateSuggestions();
 
   const handleSearch = (selectedValue) => {
-    const selected = suggestions.find(s => s.value === selectedValue);
-    if (!selected) return;
-
-    const { type, service, city, district } = selected;
-
-    if (service && city) {
-      navigate(generatePath.serviceCity(type, service, city));
-    } else if (city) {
-      navigate(generatePath.city(type, city));
-    } else {
-      navigate(generatePath.type(type));
+    const suggestion = suggestions.find(s => s.value === selectedValue);
+    if (suggestion) {
+      suggestion.action();
     }
   };
 

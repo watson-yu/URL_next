@@ -3,6 +3,7 @@ import { services } from './services';
 import { format } from '../utils/format';
 
 const generateBusinesses = () => {
+  console.log('Generating businesses...'); // Debug
   const allBusinesses = [];
   let globalId = 1;
   
@@ -35,66 +36,83 @@ const generateBusinesses = () => {
     });
   });
   
+  console.log(`Generated ${allBusinesses.length} businesses`); // Debug
   return allBusinesses;
 };
 
+// 生成並緩存商家數據
 const allBusinesses = generateBusinesses();
 
-// 獲取所有商家
-export const getAllBusinesses = () => allBusinesses;
+// 導出所有查詢函數
+export const businesses = {
+  getAll: () => {
+    console.log('Getting all businesses:', allBusinesses.length); // Debug
+    return allBusinesses;
+  },
 
-// 根據類型獲取商家
-export const getBusinessesByType = (type) => {
-  return allBusinesses.filter(business => business.type === type);
+  getById: (id) => {
+    console.log('Getting business by id:', id); // Debug
+    return allBusinesses.find(business => business.id === parseInt(id));
+  },
+
+  getByType: (type) => {
+    console.log('Getting businesses by type:', type); // Debug
+    const businesses = allBusinesses.filter(business => business.type === type);
+    console.log(`Found ${businesses.length} businesses for type ${type}`); // Debug
+    return businesses;
+  },
+
+  getByTypeAndCity: (type, city) => {
+    console.log('Getting businesses by type and city:', { type, city }); // Debug
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.location.city === city
+    );
+  },
+
+  getByTypeAndCityAndDistrict: (type, city, district) => {
+    console.log('Getting businesses by type, city and district:', { type, city, district }); // Debug
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.location.city === city &&
+      business.location.district === district
+    );
+  },
+
+  getByTypeAndService: (type, service) => {
+    console.log('Getting businesses by type and service:', { type, service }); // Debug
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.services.includes(service)
+    );
+  },
+
+  getByTypeAndServiceAndCity: (type, service, city) => {
+    console.log('Getting businesses by type, service and city:', { type, service, city }); // Debug
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.services.includes(service) &&
+      business.location.city === city
+    );
+  },
+
+  getByTypeAndServiceAndCityAndDistrict: (type, service, city, district) => {
+    console.log('Getting businesses by type, service, city and district:', { type, service, city, district }); // Debug
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.services.includes(service) &&
+      business.location.city === city &&
+      business.location.district === district
+    );
+  }
 };
 
-// 根據類型和城市獲取商家
-export const getBusinessesByTypeAndCity = (type, city) => {
-  return allBusinesses.filter(business => 
-    business.type === type && 
-    business.location.city === city
-  );
-};
-
-// 根據類型、城市和區域獲取商家
-export const getBusinessesByTypeAndCityAndDistrict = (type, city, district) => {
-  return allBusinesses.filter(business => 
-    business.type === type && 
-    business.location.city === city &&
-    business.location.district === district
-  );
-};
-
-// 根據類型和服務獲取商家
-export const getBusinessesByTypeAndService = (type, service) => {
-  return allBusinesses.filter(business => 
-    business.type === type && 
-    business.services.includes(service)
-  );
-};
-
-// 根據類型、服務和城市獲取商家
-export const getBusinessesByTypeAndServiceAndCity = (type, service, city) => {
-  return allBusinesses.filter(business => 
-    business.type === type && 
-    business.services.includes(service) &&
-    business.location.city === city
-  );
-};
-
-// 根據類型、服務、城市和區域獲取商家
-export const getBusinessesByTypeAndServiceAndCityAndDistrict = (type, service, city, district) => {
-  return allBusinesses.filter(business => 
-    business.type === type && 
-    business.services.includes(service) &&
-    business.location.city === city &&
-    business.location.district === district
-  );
-};
-
-// 根據 ID 獲取商家
-export const getBusinessById = (id) => {
-  return allBusinesses.find(business => business.id === parseInt(id));
-};
-
-export const businesses = allBusinesses;
+// 為了向後兼容，也導出單獨的函數
+export const getAllBusinesses = businesses.getAll;
+export const getBusinessById = businesses.getById;
+export const getBusinessesByType = businesses.getByType;
+export const getBusinessesByTypeAndCity = businesses.getByTypeAndCity;
+export const getBusinessesByTypeAndCityAndDistrict = businesses.getByTypeAndCityAndDistrict;
+export const getBusinessesByTypeAndService = businesses.getByTypeAndService;
+export const getBusinessesByTypeAndServiceAndCity = businesses.getByTypeAndServiceAndCity;
+export const getBusinessesByTypeAndServiceAndCityAndDistrict = businesses.getByTypeAndServiceAndCityAndDistrict;

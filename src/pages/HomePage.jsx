@@ -1,17 +1,97 @@
 import React from 'react';
-import { Container, Title, Button, Group, Box } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import UnifiedSearchBar from '../components/UnifiedSearchBar';
-import BusinessGrid from '../components/BusinessGrid';
+import { Container, Title, Button, Group, Box, SimpleGrid, Stack } from '@mantine/core';
+import SearchBar from '../components/SearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { getAllBusinesses } from '../data/businesses';
-import { generatePath } from '../utils/routes';
+import BusinessGrid from '../components/BusinessGrid';
+import { businesses } from '../data/businesses';
+import { generatePath, locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const types = Object.entries(services.types);
-  const allBusinesses = getAllBusinesses();
+  const allBusinesses = businesses.getAll();
+  const allCities = locationUtils.getAllCities();
+
+  console.log('Cities:', allCities); // Debug
+  console.log('Businesses:', allBusinesses); // Debug
+
+  // 商家類別按鈕
+  const renderTypeButtons = () => (
+    <Box mb="xl">
+      <Title order={3} size="h4" mb="md">Business Types</Title>
+      <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+        {Object.entries(services.types).map(([type, info]) => (
+          <Button
+            key={type}
+            variant="light"
+            onClick={() => {
+              console.log('Navigating to type:', type); // Debug
+              navigate(generatePath.type(type));
+            }}
+            sx={{ flexShrink: 0 }}
+          >
+            {info.displayName}
+          </Button>
+        ))}
+      </Group>
+    </Box>
+  );
+
+  // 依城市搜尋陣列
+  const renderCityColumns = () => {
+    // 確保城市列表不為空
+    if (!allCities.length) {
+      console.log('No cities found'); // Debug
+      return null;
+    }
+
+    // 將城市分為三列
+    const columns = [[], [], []];
+    allCities.forEach((city, index) => {
+      columns[index % 3].push(city);
+    });
+
+    return (
+      <Box mb="xl">
+        <Title order={3} size="h4" mb="md">Search by City</Title>
+        <SimpleGrid cols={3} spacing="md" breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
+          {columns.map((columnCities, columnIndex) => (
+            <Box key={columnIndex}>
+              {columnCities.map(city => (
+                <Box key={city} mb="md">
+                  <Title order={4} size="h5" mb="sm">
+                    {format.toDisplay(city)}
+                  </Title>
+                  <Stack spacing="xs">
+                    {Object.entries(services.types).map(([type, info]) => {
+                      const handleClick = () => {
+                        console.log('Navigating to city:', { type, city }); // Debug
+                        navigate(generatePath.city(type, city));
+                      };
+
+                      return (
+                        <Button
+                          key={`${city}-${type}`}
+                          variant="light"
+                          size="sm"
+                          onClick={handleClick}
+                          fullWidth
+                        >
+                          {`${info.displayName} in ${format.toDisplay(city)}`}
+                        </Button>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+          ))}
+        </SimpleGrid>
+      </Box>
+    );
+  };
 
   return (
     <Container size="md" py="xl">
@@ -19,34 +99,10 @@ export default function HomePage() {
       <Title order={1} align="center" mb="xl">
         Hair Services Directory
       </Title>
-      <UnifiedSearchBar />
 
-      <Box 
-        sx={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          marginBottom: 'xl',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
-          '-ms-overflow-style': 'none',
-          'scrollbarWidth': 'none'
-        }}
-      >
-        <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
-          {types.map(([type, info]) => (
-            <Button
-              key={type}
-              variant="light"
-              onClick={() => navigate(generatePath.type(type))}
-              sx={{ flexShrink: 0 }}
-            >
-              {info.displayName}
-            </Button>
-          ))}
-        </Group>
-      </Box>
-
+      <SearchBar />
+      {renderTypeButtons()}
+      {renderCityColumns()}
       <BusinessGrid businesses={allBusinesses} />
     </Container>
   );

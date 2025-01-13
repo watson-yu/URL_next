@@ -15,14 +15,12 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          {/* Service routes must come before regular routes */}
-          <Route path="/home/:type/:serviceCity" element={<ServiceCityPage />} />
-          <Route path="/home/:type/:serviceCity/:district" element={<ServiceDistrictPage />} />
-          {/* Regular routes */}
           <Route path="/home/:type" element={<TypePage />} />
           <Route path="/home/:type/:city" element={<CityPage />} />
           <Route path="/home/:type/:city/:district" element={<DistrictPage />} />
           <Route path="/home/:type/:city/:district/:businessId" element={<BusinessDetail />} />
+          <Route path="/home/:type/:service-:city" element={<ServiceCityPage />} />
+          <Route path="/home/:type/:service-:city/:district" element={<ServiceDistrictPage />} />
         </Routes>
       </Router>
     </MantineProvider>

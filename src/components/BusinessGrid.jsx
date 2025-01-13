@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { SimpleGrid, Button, Stack, Text } from '@mantine/core';
 import BusinessCard from './BusinessCard';
+import { PAGE_SIZE } from '../constants';
 
 export default function BusinessGrid({ businesses }) {
-  const ITEMS_PER_PAGE = 4;
   const [showAll, setShowAll] = useState(false);
 
   if (!Array.isArray(businesses) || businesses.length === 0) {
     return (
       <Text align="center" color="dimmed" mt="xl">
-        No businesses found
+        No businesses found in this area
       </Text>
     );
   }
 
-  const displayedBusinesses = showAll ? businesses : businesses.slice(0, ITEMS_PER_PAGE);
+  const displayedBusinesses = showAll ? businesses : businesses.slice(0, PAGE_SIZE);
 
   return (
     <Stack spacing="xl">
@@ -31,7 +31,7 @@ export default function BusinessGrid({ businesses }) {
         ))}
       </SimpleGrid>
 
-      {businesses.length > ITEMS_PER_PAGE && !showAll && (
+      {businesses.length > PAGE_SIZE && !showAll && (
         <Button 
           variant="light" 
           onClick={() => setShowAll(true)}

@@ -1,115 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import { Paper, Stack, Select, Button } from '@mantine/core';
+import React, { useState, useMemo } from 'react';
+import { Autocomplete, Paper, Button, Group } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { generatePath } from '../utils/routes';
 import { services } from '../data/services';
-import { format } from '../utils/format';
 import { locationUtils } from '../utils/routes';
+import { format } from '../utils/format';
+import { generatePath } from '../utils/routes';
+import { MAX_SUGGESTIONS } from '../constants';
 
-export default function SearchBar({ initialType, initialCity, initialDistrict, initialService, onFilter }) {
+export default function SearchBar() {
   const navigate = useNavigate();
-  const [type, setType] = useState(initialType || '');
-  const [city, setCity] = useState(initialCity || '');
-  const [district, setDistrict] = useState(initialDistrict || '');
-  const [service, setService] = useState(initialService || '');
+  const [value, setValue] = useState('');
 
-  useEffect(() => {
-    setType(initialType || '');
-    setCity(initialCity || '');
-    setDistrict(initialDistrict || '');
-    setService(initialService || '');
-  }, [initialType, initialCity, initialDistrict, initialService]);
+  // 生成搜尋建議
+  const suggestions = useMemo(() => {
+    const result = [];
+    
+    // 遍歷所有商家類型
+    Object.entries(services.types).forEach(([type, typeInfo]) => {
+      // 1. 添加商家類型建議
+      result.push({
+        value: typeInfo.displayName,
+        type,
+        action: () => navigate(generatePath.type(type))
+      });
 
-  // 從 services.js 獲取所有服務類型
-  const typeOptions = Object.entries(services.types).map(([key, { displayName }]) => ({
-    value: key,
-    label: displayName
-  }));
+      // 2. 添加商家類型 + 城市建議
+      locationUtils.getAllCities().forEach(city => {
+        result.push({
+          value: `${typeInfo.displayName} in ${format.toDisplay(city)}`,
+          type,
+          city,
+          action: () => navigate(generatePath.city(type, city))
+        });
 
-  // 獲取所有城市
-  const cityOptions = locationUtils.getAllCities().map(city => ({
-    value: city,
-    label: format.toDisplay(city)
-  }));
+        // 3. 添加服務 + 商家類型 + 城市建議
+        typeInfo.services.forEach(service => {
+          result.push({
+            value: `${format.toDisplay(service)} at ${typeInfo.displayName} in ${format.toDisplay(city)}`,
+            type,
+            service,
+            city,
+            action: () => navigate(generatePath.serviceCity(type, service, city))
+          });
+        });
+      });
+    });
 
-  // 獲取選定城市的區域
-  const districtOptions = city ? 
-    locationUtils.getDistrictsForCity(city).map(district => ({
-      value: district,
-      label: format.toDisplay(district)
-    })) : [];
+    return result;
+  }, [navigate]);
 
-  // 獲取選定類型的服務
-  const serviceOptions = type ? 
-    services.types[type]?.services.map(service => ({
-      value: service,
-      label: format.toDisplay(service)
-    })) : [];
+  // 過濾並排序建議
+  const getFilteredSuggestions = (input) => {
+    if (!input) return [];
 
-  const handleSearch = () => {
-    if (onFilter) {
-      onFilter({ type, city, district, service });
-      return;
-    }
+    const normalizedInput = input.toLowerCase();
+    return suggestions
+      .filter(suggestion => 
+        suggestion.value.toLowerCase().includes(normalizedInput)
+      )
+      .sort((a, b) => {
+        // 完全匹配優先
+        const aExact = a.value.toLowerCase() === normalizedInput;
+        const bExact = b.value.toLowerCase() === normalizedInput;
+        if (aExact !== bExact) return bExact - aExact;
 
-    if (type && city && district && service) {
-      navigate(generatePath.serviceDistrict(type, service, city, district));
-    } else if (type && city && district) {
-      navigate(generatePath.district(type, city, district));
-    } else if (type && city && service) {
-      navigate(generatePath.serviceCity(type, service, city));
-    } else if (type && city) {
-      navigate(generatePath.city(type, city));
-    } else if (type) {
-      navigate(generatePath.type(type));
+        // 開頭匹配次之
+        const aStarts = a.value.toLowerCase().startsWith(normalizedInput);
+        const bStarts = b.value.toLowerCase().startsWith(normalizedInput);
+        if (aStarts !== bStarts) return bStarts - aStarts;
+
+        // 最後按長度排序，較短的優先
+        return a.value.length - b.value.length;
+      })
+      .slice(0, MAX_SUGGESTIONS);
+  };
+
+  const handleSearch = (selectedValue) => {
+    const suggestion = suggestions.find(s => s.value === selectedValue);
+    if (suggestion) {
+      suggestion.action();
+    } else {
+      // 如果沒有匹配的建議，返回首頁
+      navigate('/');
     }
   };
 
   return (
     <Paper shadow="xs" p="md" mb="xl">
-      <Stack spacing="md">
-        <Select
-          label="Location Type"
-          placeholder="Select type"
-          data={typeOptions}
-          value={type}
-          onChange={setType}
-        />
-
-        <Select
-          label="Service"
-          placeholder="Select service"
-          data={serviceOptions}
-          value={service}
-          onChange={setService}
-          disabled={!type}
-        />
-
-        <Select
-          label="City"
-          placeholder="Select city"
-          data={cityOptions}
-          value={city}
-          onChange={(value) => {
-            setCity(value);
-            setDistrict('');
+      <Group spacing={8} noWrap>
+        <Autocomplete
+          value={value}
+          onChange={setValue}
+          data={getFilteredSuggestions(value).map(s => s.value)}
+          placeholder="Try 'Hair Salon in Taipei' or 'Haircut at Beauty Salon'"
+          sx={{ flex: 1 }}
+          onOptionSubmit={(selectedValue) => {
+            setValue(selectedValue);
+            handleSearch(selectedValue);
           }}
-          disabled={!type}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch(value);
+            }
+          }}
         />
-
-        <Select
-          label="District"
-          placeholder="Select district"
-          data={districtOptions}
-          value={district}
-          onChange={setDistrict}
-          disabled={!city}
-        />
-
-        <Button onClick={handleSearch} disabled={!type}>
+        <Button onClick={() => handleSearch(value)}>
           Search
         </Button>
-      </Stack>
+      </Group>
     </Paper>
   );
 }
