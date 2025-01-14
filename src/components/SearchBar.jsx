@@ -11,7 +11,6 @@ export default function SearchBar() {
   const navigate = useNavigate();
   const [value, setValue] = useState('');
 
-  // 生成搜尋建議
   const suggestions = useMemo(() => {
     const result = [];
     
@@ -21,7 +20,7 @@ export default function SearchBar() {
       result.push({
         value: typeInfo.displayName,
         type,
-        action: () => navigate(generatePath.type(type))
+        action: () => navigate(generatePath.actual.type(type))
       });
 
       // 2. 添加商家類型 + 城市建議
@@ -30,7 +29,7 @@ export default function SearchBar() {
           value: `${typeInfo.displayName} in ${format.toDisplay(city)}`,
           type,
           city,
-          action: () => navigate(generatePath.city(type, city))
+          action: () => navigate(generatePath.actual.city(type, city))
         });
 
         // 3. 添加服務 + 商家類型 + 城市建議
@@ -40,7 +39,7 @@ export default function SearchBar() {
             type,
             service,
             city,
-            action: () => navigate(generatePath.serviceCity(type, service, city))
+            action: () => navigate(generatePath.actual.serviceCity(type, service, city))
           });
         });
       });
@@ -94,10 +93,7 @@ export default function SearchBar() {
           data={getFilteredSuggestions(value).map(s => s.value)}
           placeholder="Try 'Hair Salon in Taipei' or 'Haircut at Beauty Salon'"
           sx={{ flex: 1 }}
-          onOptionSubmit={(selectedValue) => {
-            setValue(selectedValue);
-            handleSearch(selectedValue);
-          }}
+          onOptionSubmit={handleSearch}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
               handleSearch(value);

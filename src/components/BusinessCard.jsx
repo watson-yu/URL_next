@@ -3,15 +3,19 @@ import { Card, Text, Badge, Stack } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../data/services';
 import { format } from '../utils/format';
-import { generatePath, validatePath } from '../utils/routes';
+import { generatePath } from '../utils/routes';
 
 export default function BusinessCard({ business }) {
   const navigate = useNavigate();
   const typeInfo = services.types[business.type];
 
+  if (!typeInfo) {
+    console.error('Invalid business type:', business.type);
+    return null;
+  }
+
   const handleClick = () => {
     try {
-      // 驗證所有必要的數據
       if (!business || !business.location) {
         console.error('Invalid business data:', business);
         return;
@@ -21,26 +25,18 @@ export default function BusinessCard({ business }) {
       const { city, district } = business.location;
       const businessId = business.id?.toString();
 
-      // 驗證所有參數
-      if (!validatePath.type(type) || 
-          !validatePath.city(city) || 
-          !validatePath.district(city, district) || 
-          !businessId) {
-        console.error('Invalid business parameters:', { type, city, district, businessId });
+      // 驗證所有必要的數據
+      if (!type || !city || !district || !businessId) {
+        console.error('Missing required business data:', { type, city, district, businessId });
         return;
       }
 
-      const path = generatePath.businessDetail(type, city, district, businessId);
-      navigate(path);
+      // 商家詳情頁面保持原有路徑格式
+      navigate(generatePath.display.businessDetail(type, city, district, businessId));
     } catch (error) {
       console.error('Error navigating to business detail:', error);
     }
   };
-
-  if (!typeInfo) {
-    console.error('Invalid business type:', business.type);
-    return null;
-  }
 
   return (
     <Card 

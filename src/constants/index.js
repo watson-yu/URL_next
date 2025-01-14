@@ -1,14 +1,29 @@
-export const PAGE_SIZE = 4; // 每頁顯示的商家數量
-export const MAX_SUGGESTIONS = 5; // 搜尋建議最大數量
+export const PAGE_SIZE = 4;
+export const MAX_SUGGESTIONS = 5;
 
+// 新的 URL 模式
 export const URL_PATTERNS = {
-  HOME: '/',
-  TYPE: '/home/:type',
-  CITY: '/home/:type/:city',
-  DISTRICT: '/home/:type/:city/:district',
-  SERVICE_CITY: '/home/:type_:service/:city',
-  SERVICE_DISTRICT: '/home/:type_:service/:city/:district',
-  BUSINESS_DETAIL: '/home/:type/:city/:district/:businessId'
+  // 實際路由路徑
+  V_ROUTES: {
+    TYPE: '/home/v/:type',
+    CITY: '/home/v/:type/:city',
+    DISTRICT: '/home/v/:type/:city/:district',
+  },
+  T_ROUTES: {
+    SERVICE_CITY: '/home/t/:type/:service/:city',
+    SERVICE_DISTRICT: '/home/t/:type/:service/:city/:district',
+  },
+  
+  // 顯示用路徑（用於 breadcrumb）
+  DISPLAY: {
+    HOME: '/',
+    TYPE: '/home/:type',
+    CITY: '/home/:type/:city',
+    DISTRICT: '/home/:type/:city/:district',
+    SERVICE_CITY: '/home/:type/:service-:city',
+    SERVICE_DISTRICT: '/home/:type/:service-:city/:district',
+    BUSINESS_DETAIL: '/home/:type/:city/:district/:businessId'
+  }
 };
 
 export const LEVELS = {

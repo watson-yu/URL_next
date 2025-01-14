@@ -1,7 +1,7 @@
 import React from 'react';
 import { Group, Button, Box, Text } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { locationUtils, generatePath, validatePath } from '../../utils/routes';
+import { locationUtils, generatePath } from '../../utils/routes';
 import { format } from '../../utils/format';
 import { services } from '../../data/services';
 
@@ -15,7 +15,6 @@ export function DistrictButtons({
   const typeInfo = services.types[type];
   const districts = locationUtils.getDistrictsForCity(city);
 
-  // 過濾掉當前區域
   const availableDistricts = districts.filter(district => 
     district !== currentDistrict
   );
@@ -23,29 +22,11 @@ export function DistrictButtons({
   if (availableDistricts.length === 0) return null;
 
   const handleClick = (district) => {
-    // 驗證所有參數
-    if (!validatePath.type(type) || !validatePath.city(city) || 
-        !validatePath.district(city, district)) {
-      navigate('/');
-      return;
-    }
-
     if (service) {
-      if (validatePath.service(type, service)) {
-        navigate(generatePath.serviceDistrict(type, service, city, district));
-      } else {
-        navigate(generatePath.district(type, city, district));
-      }
+      navigate(generatePath.actual.serviceDistrict(type, service, city, district));
     } else {
-      navigate(generatePath.district(type, city, district));
+      navigate(generatePath.actual.district(type, city, district));
     }
-  };
-
-  const getButtonText = (district) => {
-    if (service) {
-      return `${format.toDisplay(service)} in ${format.toDisplay(district)}`;
-    }
-    return `${typeInfo.displayName} in ${format.toDisplay(district)}`;
   };
 
   return (
@@ -64,7 +45,7 @@ export function DistrictButtons({
             onClick={() => handleClick(district)}
             sx={{ flexShrink: 0 }}
           >
-            {getButtonText(district)}
+            {format.toDisplay(district)}
           </Button>
         ))}
       </Group>

@@ -1,7 +1,8 @@
 import { locations } from '../data/locations';
 import { services } from '../data/services';
+import { URL_PATTERNS } from '../constants';
 
-// First, define and export locationUtils
+// 首先定義 locationUtils 的具體函數
 const getAllCities = () => {
   try {
     const cities = [];
@@ -64,7 +65,7 @@ const isDistrictValid = (city, district) => {
   }
 };
 
-// Export locationUtils first
+// 導出 locationUtils
 export const locationUtils = {
   getAllCities,
   getDistrictsForCity,
@@ -73,144 +74,225 @@ export const locationUtils = {
   isDistrictValid
 };
 
-// Then define and export validatePath
+// 驗證函數
+const validateType = (type) => {
+  try {
+    return Boolean(type && services.types[type]);
+  } catch (error) {
+    console.error('Error validating type:', error);
+    return false;
+  }
+};
+
+const validateCity = (city) => {
+  try {
+    return Boolean(city && locationUtils.isCityValid(city));
+  } catch (error) {
+    console.error('Error validating city:', error);
+    return false;
+  }
+};
+
+const validateDistrict = (city, district) => {
+  try {
+    return Boolean(
+      city && 
+      district && 
+      locationUtils.isDistrictValid(city, district)
+    );
+  } catch (error) {
+    console.error('Error validating district:', error);
+    return false;
+  }
+};
+
+const validateService = (type, service) => {
+  try {
+    const typeInfo = services.types[type];
+    return Boolean(
+      typeInfo && 
+      service && 
+      typeInfo.services.includes(service)
+    );
+  } catch (error) {
+    console.error('Error validating service:', error);
+    return false;
+  }
+};
+
+// 導出 validatePath
 export const validatePath = {
-  type: (type) => {
-    try {
-      return Boolean(type && services.types[type]);
-    } catch (error) {
-      console.error('Error validating type:', error);
-      return false;
-    }
-  },
-
-  city: (city) => {
-    try {
-      return Boolean(city && locationUtils.isCityValid(city));
-    } catch (error) {
-      console.error('Error validating city:', error);
-      return false;
-    }
-  },
-
-  district: (city, district) => {
-    try {
-      return Boolean(
-        city && 
-        district && 
-        locationUtils.isDistrictValid(city, district)
-      );
-    } catch (error) {
-      console.error('Error validating district:', error);
-      return false;
-    }
-  },
-
-  service: (type, service) => {
-    try {
-      const typeInfo = services.types[type];
-      return Boolean(
-        typeInfo && 
-        service && 
-        typeInfo.services.includes(service)
-      );
-    } catch (error) {
-      console.error('Error validating service:', error);
-      return false;
-    }
-  }
+  type: validateType,
+  city: validateCity,
+  district: validateDistrict,
+  service: validateService
 };
 
-// Then define and export generatePath
+// 生成路徑函數
 export const generatePath = {
-  type: (type) => {
-    try {
-      console.log('Generating type path:', { type }); // Debug
-      if (!validatePath.type(type)) {
-        console.warn('Invalid type:', type);
+  // 實際 URL 路徑生成
+  actual: {
+    type: (type) => {
+      try {
+        if (!validatePath.type(type)) return '/';
+        return URL_PATTERNS.V_ROUTES.TYPE.replace(':type', type);
+      } catch (error) {
+        console.error('Error generating actual type path:', error);
         return '/';
       }
-      return `/home/${type}`;
-    } catch (error) {
-      console.error('Error generating type path:', error);
-      return '/';
+    },
+
+    city: (type, city) => {
+      try {
+        if (!validatePath.type(type) || !validatePath.city(city)) return '/';
+        return URL_PATTERNS.V_ROUTES.CITY
+          .replace(':type', type)
+          .replace(':city', city);
+      } catch (error) {
+        console.error('Error generating actual city path:', error);
+        return '/';
+      }
+    },
+
+    district: (type, city, district) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.city(city) || 
+            !validatePath.district(city, district)) return '/';
+        return URL_PATTERNS.V_ROUTES.DISTRICT
+          .replace(':type', type)
+          .replace(':city', city)
+          .replace(':district', district);
+      } catch (error) {
+        console.error('Error generating actual district path:', error);
+        return '/';
+      }
+    },
+
+    serviceCity: (type, service, city) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.service(type, service) || 
+            !validatePath.city(city)) return '/';
+        return URL_PATTERNS.T_ROUTES.SERVICE_CITY
+          .replace(':type', type)
+          .replace(':service', service)
+          .replace(':city', city);
+      } catch (error) {
+        console.error('Error generating actual service-city path:', error);
+        return '/';
+      }
+    },
+
+    serviceDistrict: (type, service, city, district) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.service(type, service) || 
+            !validatePath.city(city) || 
+            !validatePath.district(city, district)) return '/';
+        return URL_PATTERNS.T_ROUTES.SERVICE_DISTRICT
+          .replace(':type', type)
+          .replace(':service', service)
+          .replace(':city', city)
+          .replace(':district', district);
+      } catch (error) {
+        console.error('Error generating actual service-district path:', error);
+        return '/';
+      }
     }
   },
 
-  city: (type, city) => {
-    try {
-      console.log('Generating city path:', { type, city }); // Debug
-      if (!validatePath.type(type) || !validatePath.city(city)) {
-        console.warn('Invalid type or city:', { type, city });
+  // Breadcrumb 顯示用路徑生成
+  display: {
+    type: (type) => {
+      try {
+        if (!validatePath.type(type)) return '/';
+        return URL_PATTERNS.DISPLAY.TYPE.replace(':type', type);
+      } catch (error) {
+        console.error('Error generating display type path:', error);
         return '/';
       }
-      return `/home/${type}/${city}`;
-    } catch (error) {
-      console.error('Error generating city path:', error);
-      return '/';
-    }
-  },
+    },
 
-  serviceCity: (type, service, city) => {
-    try {
-      if (!validatePath.type(type) || 
-          !validatePath.service(type, service) || 
-          !validatePath.city(city)) {
+    city: (type, city) => {
+      try {
+        if (!validatePath.type(type) || !validatePath.city(city)) return '/';
+        return URL_PATTERNS.DISPLAY.CITY
+          .replace(':type', type)
+          .replace(':city', city);
+      } catch (error) {
+        console.error('Error generating display city path:', error);
         return '/';
       }
-      return `/home/${type}_${service}/${city}`;
-    } catch (error) {
-      console.error('Error generating service-city path:', error);
-      return '/';
-    }
-  },
+    },
 
-  district: (type, city, district) => {
-    try {
-      if (!validatePath.type(type) || 
-          !validatePath.city(city) || 
-          !validatePath.district(city, district)) {
+    district: (type, city, district) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.city(city) || 
+            !validatePath.district(city, district)) return '/';
+        return URL_PATTERNS.DISPLAY.DISTRICT
+          .replace(':type', type)
+          .replace(':city', city)
+          .replace(':district', district);
+      } catch (error) {
+        console.error('Error generating display district path:', error);
         return '/';
       }
-      return `/home/${type}/${city}/${district}`;
-    } catch (error) {
-      console.error('Error generating district path:', error);
-      return '/';
-    }
-  },
+    },
 
-  serviceDistrict: (type, service, city, district) => {
-    try {
-      if (!validatePath.type(type) || 
-          !validatePath.service(type, service) || 
-          !validatePath.city(city) || 
-          !validatePath.district(city, district)) {
+    serviceCity: (type, service, city) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.service(type, service) || 
+            !validatePath.city(city)) return '/';
+        return URL_PATTERNS.DISPLAY.SERVICE_CITY
+          .replace(':type', type)
+          .replace(':service', service)
+          .replace(':city', city);
+      } catch (error) {
+        console.error('Error generating display service-city path:', error);
         return '/';
       }
-      return `/home/${type}_${service}/${city}/${district}`;
-    } catch (error) {
-      console.error('Error generating service-district path:', error);
-      return '/';
-    }
-  },
+    },
 
-  businessDetail: (type, city, district, businessId) => {
-    try {
-      if (!validatePath.type(type) || 
-          !validatePath.city(city) || 
-          !validatePath.district(city, district) || 
-          !businessId) {
+    serviceDistrict: (type, service, city, district) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.service(type, service) || 
+            !validatePath.city(city) || 
+            !validatePath.district(city, district)) return '/';
+        return URL_PATTERNS.DISPLAY.SERVICE_DISTRICT
+          .replace(':type', type)
+          .replace(':service', service)
+          .replace(':city', city)
+          .replace(':district', district);
+      } catch (error) {
+        console.error('Error generating display service-district path:', error);
         return '/';
       }
-      return `/home/${type}/${city}/${district}/${businessId}`;
-    } catch (error) {
-      console.error('Error generating business detail path:', error);
-      return '/';
+    },
+
+    businessDetail: (type, city, district, businessId) => {
+      try {
+        if (!validatePath.type(type) || 
+            !validatePath.city(city) || 
+            !validatePath.district(city, district) || 
+            !businessId) return '/';
+        return URL_PATTERNS.DISPLAY.BUSINESS_DETAIL
+          .replace(':type', type)
+          .replace(':city', city)
+          .replace(':district', district)
+          .replace(':businessId', businessId);
+      } catch (error) {
+        console.error('Error generating display business detail path:', error);
+        return '/';
+      }
     }
   }
 };
 
-// Finally define and export parseServiceCity
+// 解析服務城市
 export const parseServiceCity = (serviceCity) => {
   try {
     if (!serviceCity || !serviceCity.includes('-')) {

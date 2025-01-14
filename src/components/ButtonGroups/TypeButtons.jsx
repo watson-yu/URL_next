@@ -2,40 +2,23 @@ import React from 'react';
 import { Group, Button, Box, Text } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../../data/services';
-import { generatePath, validatePath } from '../../utils/routes';
+import { generatePath } from '../../utils/routes';
 
 export function TypeButtons({ currentType, city, district }) {
   const navigate = useNavigate();
   
-  // 過濾掉當前類型
   const otherTypes = Object.entries(services.types)
     .filter(([type]) => type !== currentType);
 
   if (otherTypes.length === 0) return null;
 
   const handleClick = (type) => {
-    // 驗證所有參數
-    if (!validatePath.type(type)) {
-      navigate('/');
-      return;
-    }
-
     if (district) {
-      if (validatePath.district(city, district)) {
-        navigate(generatePath.district(type, city, district));
-      } else if (validatePath.city(city)) {
-        navigate(generatePath.city(type, city));
-      } else {
-        navigate(generatePath.type(type));
-      }
+      navigate(generatePath.actual.district(type, city, district));
     } else if (city) {
-      if (validatePath.city(city)) {
-        navigate(generatePath.city(type, city));
-      } else {
-        navigate(generatePath.type(type));
-      }
+      navigate(generatePath.actual.city(type, city));
     } else {
-      navigate(generatePath.type(type));
+      navigate(generatePath.actual.type(type));
     }
   };
 

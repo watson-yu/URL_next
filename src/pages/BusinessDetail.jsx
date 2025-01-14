@@ -8,37 +8,50 @@ import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function BusinessDetail() {
-  const { typeService, city, district, businessId } = useParams();
+  const { type, city, district, businessId } = useParams();
   const navigate = useNavigate();
   
-  const business = getBusinessById(businessId);
+  const business = getBusinessById(parseInt(businessId));
+  const typeInfo = services.types[type];
   
-  if (!business) {
+  if (!business || !typeInfo) {
     return (
       <Container size="md" py="xl">
-        <Text>Business not found</Text>
-        <Button onClick={() => navigate('/')} mt="md">Back to Home</Button>
+        <Title order={1} align="center" mb="xl">
+          Business Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The business you are looking for does not exist.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
       </Container>
     );
   }
 
-  const typeInfo = services.types[business.type];
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
-      path: generatePath.type(business.type)
+      path: generatePath.display.type(type),
+      actualPath: generatePath.actual.type(type)
     },
     {
       label: format.toDisplay(city),
-      path: generatePath.city(business.type, city)
+      path: generatePath.display.city(type, city),
+      actualPath: generatePath.actual.city(type, city)
     },
     {
       label: format.toDisplay(district),
-      path: generatePath.district(business.type, city, district)
+      path: generatePath.display.district(type, city, district),
+      actualPath: generatePath.actual.district(type, city, district)
     },
     {
       label: business.name,
-      path: generatePath.businessDetail(business.type, city, district, business.id)
+      path: generatePath.display.businessDetail(type, city, district, businessId),
+      actualPath: generatePath.display.businessDetail(type, city, district, businessId) // 商家詳情頁保持原有格式
     }
   ];
 
@@ -54,7 +67,7 @@ export default function BusinessDetail() {
             <Badge 
               size="lg" 
               color={typeInfo.color}
-              onClick={() => navigate(generatePath.type(business.type))}
+              onClick={() => navigate(generatePath.actual.type(type))}
               sx={{ cursor: 'pointer' }}
             >
               {typeInfo.displayName}
@@ -66,16 +79,16 @@ export default function BusinessDetail() {
             <Group spacing={8}>
               <Text
                 sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(generatePath.district(business.type, city, district))}
+                onClick={() => navigate(generatePath.actual.district(type, city, district))}
               >
-                {format.toDisplay(business.location.district)}
+                {format.toDisplay(district)}
               </Text>
               <Text>,</Text>
               <Text
                 sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(generatePath.city(business.type, city))}
+                onClick={() => navigate(generatePath.actual.city(type, city))}
               >
-                {format.toDisplay(business.location.city)}
+                {format.toDisplay(city)}
               </Text>
               <Text>,</Text>
               <Text>{business.location.country}</Text>
@@ -89,8 +102,8 @@ export default function BusinessDetail() {
                 <Badge 
                   key={service} 
                   variant="outline"
-                  onClick={() => navigate(generatePath.serviceDistrict(
-                    business.type,
+                  onClick={() => navigate(generatePath.actual.serviceDistrict(
+                    type,
                     service,
                     city,
                     district

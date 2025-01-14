@@ -12,109 +12,70 @@ import { services } from '../data/services';
 export default function CityPage() {
   const navigate = useNavigate();
   const { type, city } = useParams();
-  
-  console.log('CityPage params:', { type, city }); // Debug
-  
   const typeInfo = services.types[type];
-  const businessList = businesses.getByTypeAndCity(type, city);
-  
-  console.log('Type info:', typeInfo); // Debug
-  console.log('Businesses found:', businessList?.length); // Debug
-
-  // 如果類型不存在，顯示錯誤頁面
-  if (!typeInfo) {
-    return (
-      <Container size="md" py="xl">
-        <Title order={1} align="center" mb="xl">
-          Service Type Not Found
-        </Title>
-        <Text align="center" mb="xl">
-          The service type does not exist in our directory.
-        </Text>
-        <Group position="center">
-          <Button onClick={() => navigate('/')}>
-            Back to Home
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
-  // 如果城市不存在，顯示錯誤頁面
-  if (!locationUtils.isCityValid(city)) {
-    return (
-      <Container size="md" py="xl">
-        <Title order={1} align="center" mb="xl">
-          City Not Found
-        </Title>
-        <Text align="center" mb="xl">
-          The city "{format.toDisplay(city)}" does not exist in our directory.
-        </Text>
-        <Group position="center">
-          <Button onClick={() => navigate(generatePath.type(type))}>
-            Back to {typeInfo.displayName}
-          </Button>
-          <Button onClick={() => navigate('/')}>
-            Back to Home
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
   const districts = locationUtils.getDistrictsForCity(city);
-  console.log('Available districts:', districts); // Debug
+
+  // 錯誤處理
+  if (!typeInfo || !locationUtils.isCityValid(city)) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          Location Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The specified location does not exist in our directory.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate(generatePath.actual.type(type))}>
+            Back to {typeInfo?.displayName || 'Home'}
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  const businessList = businesses.getByTypeAndCity(type, city);
 
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
-      path: generatePath.type(type)
+      path: generatePath.display.type(type),
+      actualPath: generatePath.actual.type(type)
     },
     {
       label: format.toDisplay(city),
-      path: generatePath.city(type, city)
+      path: generatePath.display.city(type, city),
+      actualPath: generatePath.actual.city(type, city)
     }
   ];
 
-  // 服務按鈕
+  // 服務項目按鈕（包含當前商家類別）
   const renderServiceButtons = () => (
     <Box mb="xl">
       <Title order={3} size="h4" mb="md">Available Services</Title>
       <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+        {/* 當前商家類別按鈕 */}
+        <Button
+          variant="filled"
+          color={typeInfo.color}
+          onClick={() => navigate(generatePath.actual.city(type, city))}
+          sx={{ flexShrink: 0 }}
+        >
+          {typeInfo.displayName}
+        </Button>
+        {/* 服務項目按鈕 */}
         {typeInfo.services.map((service) => (
           <Button
             key={service}
             variant="light"
             color={typeInfo.color}
-            onClick={() => {
-              console.log('Navigating to service:', { type, service, city }); // Debug
-              navigate(generatePath.serviceCity(type, service, city));
-            }}
+            onClick={() => navigate(generatePath.actual.serviceCity(type, service, city))}
             sx={{ flexShrink: 0 }}
           >
             {format.toDisplay(service)}
-          </Button>
-        ))}
-      </Group>
-    </Box>
-  );
-
-  // 區域按鈕
-  const renderDistrictButtons = () => (
-    <Box mb="xl">
-      <Title order={3} size="h4" mb="md">Districts in {format.toDisplay(city)}</Title>
-      <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
-        {districts.map((district) => (
-          <Button
-            key={district}
-            variant="light"
-            onClick={() => {
-              console.log('Navigating to district:', { type, city, district }); // Debug
-              navigate(generatePath.district(type, city, district));
-            }}
-            sx={{ flexShrink: 0 }}
-          >
-            {`${typeInfo.displayName} in ${format.toDisplay(district)}`}
           </Button>
         ))}
       </Group>
@@ -134,7 +95,7 @@ export default function CityPage() {
             <Button
               key={t}
               variant="light"
-              onClick={() => navigate(generatePath.city(t, city))}
+              onClick={() => navigate(generatePath.actual.city(t, city))}
               sx={{ flexShrink: 0 }}
             >
               {info.displayName}
@@ -145,18 +106,34 @@ export default function CityPage() {
     );
   };
 
+  // 行政區列表
+  const renderDistrictButtons = () => (
+    <Box mb="xl">
+      <Title order={3} size="h4" mb="md">{typeInfo.displayName} in Districts</Title>
+      <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+        {districts.map((district) => (
+          <Button
+            key={district}
+            variant="light"
+            onClick={() => navigate(generatePath.actual.district(type, city, district))}
+            sx={{ flexShrink: 0 }}
+          >
+            {`${typeInfo.displayName} in ${format.toDisplay(district)}`}
+          </Button>
+        ))}
+      </Group>
+    </Box>
+  );
+
   return (
     <Container size="md" py="xl">
-      <Breadcrumbs items={breadcrumbItems} />
-      <Title order={1} align="center" mb="md">
-        {typeInfo.displayName} in {format.toDisplay(city)}
-      </Title>
-
       <SearchBar />
+      <Breadcrumbs items={breadcrumbItems} />
+      
       {renderServiceButtons()}
-      {renderDistrictButtons()}
-      {renderOtherTypeButtons()}
       <BusinessGrid businesses={businessList} />
+      {renderOtherTypeButtons()}
+      {renderDistrictButtons()}
     </Container>
   );
 }
