@@ -1,24 +1,52 @@
+export const BUSINESS_COLOR = "blue";  // 統一的顏色定義
+
 export const services = {
   types: {
     hair_salon: {
       displayName: "Hair Salon",
-      color: "grape",
-      services: ["haircut", "hair_coloring", "hair_styling", "hair_treatment"]
+      color: BUSINESS_COLOR,
+      services: [
+        "womens_haircut",
+        "hair_coloring",
+        "hair_styling",
+        "hair_treatment"
+      ]
     },
     beauty_salon: {
       displayName: "Beauty Salon",
-      color: "pink",
-      services: ["facial", "manicure", "pedicure", "makeup", "skin_care"]
+      color: BUSINESS_COLOR,
+      services: [
+        "facial_treatment",
+        "beauty_manicure",
+        "beauty_pedicure",
+        "makeup",
+        "skin_care"
+      ]
     },
     barbershop: {
       displayName: "Barbershop",
-      color: "blue",
-      services: ["haircut", "shaving", "beard_trimming", "hair_styling"]
+      color: BUSINESS_COLOR,
+      services: [
+        "mens_haircut",
+        "shaving",
+        "beard_trimming",
+        "mens_styling"
+      ]
+    },
+    nail_salon: {
+      displayName: "Nail Salon",
+      color: BUSINESS_COLOR,
+      services: [
+        "nail_manicure",
+        "nail_pedicure",
+        "nail_art",
+        "nail_care",
+        "gel_nails"
+      ]
     }
   }
 };
 
-// 新增：根據服務名稱獲取對應的商家類型
 export const getTypeByService = (service) => {
   for (const [type, info] of Object.entries(services.types)) {
     if (info.services.includes(service)) {
@@ -28,7 +56,6 @@ export const getTypeByService = (service) => {
   return null;
 };
 
-// 新增：檢查服務是否存在
 export const isValidService = (service) => {
   return Boolean(getTypeByService(service));
 };
