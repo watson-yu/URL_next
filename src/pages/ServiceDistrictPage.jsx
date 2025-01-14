@@ -40,7 +40,7 @@ export default function ServiceDistrictPage() {
     {
       label: typeInfo.displayName,
       path: generatePath.display.type(type),
-      actualPath: generatePath.actual.district(type, city, district)
+      actualPath: generatePath.actual.type(type)
     },
     {
       label: `${format.toDisplay(service)} in ${format.toDisplay(city)}`,
@@ -65,7 +65,6 @@ export default function ServiceDistrictPage() {
           {/* 當前服務按鈕 */}
           <Button
             variant="filled"
-            color={typeInfo.color}
             onClick={() => navigate(generatePath.actual.serviceDistrict(type, service, city, district))}
             sx={{ flexShrink: 0 }}
           >
@@ -76,7 +75,6 @@ export default function ServiceDistrictPage() {
             <Button
               key={otherService}
               variant="light"
-              color={typeInfo.color}
               onClick={() => navigate(generatePath.actual.serviceDistrict(type, otherService, city, district))}
               sx={{ flexShrink: 0 }}
             >

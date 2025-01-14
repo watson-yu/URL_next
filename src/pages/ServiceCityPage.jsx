@@ -40,7 +40,7 @@ export default function ServiceCityPage() {
     {
       label: typeInfo.displayName,
       path: generatePath.display.type(type),
-      actualPath: generatePath.actual.city(type, city)
+      actualPath: generatePath.actual.type(type)
     },
     {
       label: `${format.toDisplay(service)} in ${format.toDisplay(city)}`,
@@ -60,7 +60,6 @@ export default function ServiceCityPage() {
           {/* 當前服務按鈕 */}
           <Button
             variant="filled"
-            color={typeInfo.color}
             onClick={() => navigate(generatePath.actual.serviceCity(type, service, city))}
             sx={{ flexShrink: 0 }}
           >
@@ -71,7 +70,6 @@ export default function ServiceCityPage() {
             <Button
               key={otherService}
               variant="light"
-              color={typeInfo.color}
               onClick={() => navigate(generatePath.actual.serviceCity(type, otherService, city))}
               sx={{ flexShrink: 0 }}
             >
