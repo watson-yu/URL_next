@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Container, Title, Button, Group, Box, Text, Stack } from '@mantine/core';
+import { Container, Title, Button, Group, Box, Text } from '@mantine/core';
 import SearchBar from '../components/SearchBar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
@@ -109,8 +109,10 @@ export default function TypePage() {
     <Container size="md" py="xl">
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
-      
       {renderCityButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Best Global {typeInfo.displayName}s
+      </Title>
       <BusinessGrid businesses={businessList} />
       {renderOtherTypeButtons()}
       {renderSearchByCity()}

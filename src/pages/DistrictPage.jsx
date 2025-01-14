@@ -15,8 +15,25 @@ export default function DistrictPage() {
   const typeInfo = services.types[type];
   const allDistricts = locationUtils.getDistrictsForCity(city);
 
-  // 錯誤處理
-  if (!typeInfo || !locationUtils.isCityValid(city) || !locationUtils.isDistrictValid(city, district)) {
+  if (!typeInfo) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          Service Type Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The service type does not exist in our directory.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  if (!locationUtils.isCityValid(city) || !locationUtils.isDistrictValid(city, district)) {
     return (
       <Container size="md" py="xl">
         <Title order={1} align="center" mb="xl">
@@ -27,7 +44,7 @@ export default function DistrictPage() {
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.actual.type(type))}>
-            Back to {typeInfo?.displayName || 'Home'}
+            Back to {typeInfo.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -138,8 +155,10 @@ export default function DistrictPage() {
     <Container size="md" py="xl">
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
-      
       {renderServiceButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Best {typeInfo.displayName}s near me in {format.toDisplay(district)}, {format.toDisplay(city)}
+      </Title>
       <BusinessGrid businesses={businessList} />
       {renderOtherTypeButtons()}
       {renderOtherDistrictButtons()}

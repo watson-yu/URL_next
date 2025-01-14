@@ -15,7 +15,6 @@ export default function ServiceCityPage() {
   const typeInfo = services.types[type];
   const districts = locationUtils.getDistrictsForCity(city);
 
-  // 錯誤處理
   if (!typeInfo || !locationUtils.isCityValid(city)) {
     return (
       <Container size="md" py="xl">
@@ -43,7 +42,6 @@ export default function ServiceCityPage() {
     {
       label: typeInfo.displayName,
       path: generatePath.display.type(type),
-      // 修改這裡：點擊類型時導航到對應的城市頁面
       actualPath: generatePath.actual.city(type, city)
     },
     {
@@ -134,8 +132,10 @@ export default function ServiceCityPage() {
     <Container size="md" py="xl">
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
-      
       {renderServiceButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Best {format.toDisplay(service)}s near me in {format.toDisplay(city)}
+      </Title>
       <BusinessGrid businesses={businessList} />
       {renderOtherTypeButtons()}
       {renderDistrictButtons()}

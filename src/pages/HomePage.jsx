@@ -81,6 +81,9 @@ export default function HomePage() {
     <Container size="md" py="xl">
       <SearchBar />
       {renderTypeButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Feature Shops
+      </Title>
       <BusinessGrid businesses={allBusinesses} />
       {renderCityButtons()}
     </Container>

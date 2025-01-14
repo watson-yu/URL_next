@@ -15,19 +15,36 @@ export default function CityPage() {
   const typeInfo = services.types[type];
   const districts = locationUtils.getDistrictsForCity(city);
 
-  // 錯誤處理
-  if (!typeInfo || !locationUtils.isCityValid(city)) {
+  if (!typeInfo) {
     return (
       <Container size="md" py="xl">
         <Title order={1} align="center" mb="xl">
-          Location Not Found
+          Service Type Not Found
         </Title>
         <Text align="center" mb="xl">
-          The specified location does not exist in our directory.
+          The service type does not exist in our directory.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  if (!locationUtils.isCityValid(city)) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          City Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The city "{format.toDisplay(city)}" does not exist in our directory.
         </Text>
         <Group position="center">
           <Button onClick={() => navigate(generatePath.actual.type(type))}>
-            Back to {typeInfo?.displayName || 'Home'}
+            Back to {typeInfo.displayName}
           </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
@@ -129,8 +146,10 @@ export default function CityPage() {
     <Container size="md" py="xl">
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
-      
       {renderServiceButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Best {typeInfo.displayName}s near me in {format.toDisplay(city)}
+      </Title>
       <BusinessGrid businesses={businessList} />
       {renderOtherTypeButtons()}
       {renderDistrictButtons()}

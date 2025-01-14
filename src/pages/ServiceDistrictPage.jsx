@@ -10,13 +10,38 @@ import { format } from '../utils/format';
 import { services } from '../data/services';
 
 export default function ServiceDistrictPage() {
-  // ... 其他代碼保持不變 ...
+  const navigate = useNavigate();
+  const { type, service, city, district } = useParams();
+  const typeInfo = services.types[type];
+  const allDistricts = locationUtils.getDistrictsForCity(city);
+
+  if (!typeInfo || !locationUtils.isCityValid(city) || !locationUtils.isDistrictValid(city, district)) {
+    return (
+      <Container size="md" py="xl">
+        <Title order={1} align="center" mb="xl">
+          Location Not Found
+        </Title>
+        <Text align="center" mb="xl">
+          The specified location does not exist in our directory.
+        </Text>
+        <Group position="center">
+          <Button onClick={() => navigate(generatePath.actual.type(type))}>
+            Back to {typeInfo?.displayName || 'Home'}
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+        </Group>
+      </Container>
+    );
+  }
+
+  const businessList = businesses.getByTypeAndServiceAndCityAndDistrict(type, service, city, district);
 
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
       path: generatePath.display.type(type),
-      // 修改這裡：點擊類型時導航到對應的區域頁面
       actualPath: generatePath.actual.district(type, city, district)
     },
     {
@@ -31,5 +56,98 @@ export default function ServiceDistrictPage() {
     }
   ];
 
-  // ... 其他代碼保持不變 ...
+  // 服務項目按鈕（當前服務排第一，其他依序排列）
+  const renderServiceButtons = () => {
+    const otherServices = typeInfo.services.filter(s => s !== service);
+    
+    return (
+      <Box mb="xl">
+        <Title order={3} size="h4" mb="md">Available Services</Title>
+        <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+          {/* 當前服務按鈕 */}
+          <Button
+            variant="filled"
+            color={typeInfo.color}
+            onClick={() => navigate(generatePath.actual.serviceDistrict(type, service, city, district))}
+            sx={{ flexShrink: 0 }}
+          >
+            {format.toDisplay(service)}
+          </Button>
+          {/* 其他服務按鈕 */}
+          {otherServices.map((otherService) => (
+            <Button
+              key={otherService}
+              variant="light"
+              color={typeInfo.color}
+              onClick={() => navigate(generatePath.actual.serviceDistrict(type, otherService, city, district))}
+              sx={{ flexShrink: 0 }}
+            >
+              {format.toDisplay(otherService)}
+            </Button>
+          ))}
+        </Group>
+      </Box>
+    );
+  };
+
+  // 其他商家類別按鈕
+  const renderOtherTypeButtons = () => {
+    const otherTypes = Object.entries(services.types)
+      .filter(([t]) => t !== type);
+
+    return (
+      <Box mb="xl">
+        <Title order={3} size="h4" mb="md">Other Business Types</Title>
+        <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+          {otherTypes.map(([t, info]) => (
+            <Button
+              key={t}
+              variant="light"
+              onClick={() => navigate(generatePath.actual.district(t, city, district))}
+              sx={{ flexShrink: 0 }}
+            >
+              {info.displayName}
+            </Button>
+          ))}
+        </Group>
+      </Box>
+    );
+  };
+
+  // 其他行政區列表
+  const renderOtherDistrictButtons = () => {
+    const otherDistricts = allDistricts.filter(d => d !== district);
+
+    return (
+      <Box mb="xl">
+        <Title order={3} size="h4" mb="md">{format.toDisplay(service)} in Other Districts</Title>
+        <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
+          {otherDistricts.map((otherDistrict) => (
+            <Button
+              key={otherDistrict}
+              variant="light"
+              onClick={() => navigate(generatePath.actual.serviceDistrict(type, service, city, otherDistrict))}
+              sx={{ flexShrink: 0 }}
+            >
+              {`${format.toDisplay(service)} in ${format.toDisplay(otherDistrict)}`}
+            </Button>
+          ))}
+        </Group>
+      </Box>
+    );
+  };
+
+  return (
+    <Container size="md" py="xl">
+      <SearchBar />
+      <Breadcrumbs items={breadcrumbItems} />
+      {renderServiceButtons()}
+      <Title order={2} size="h3" mb="md" sx={{ textAlign: 'left' }}>
+        Best {format.toDisplay(service)}s near me in {format.toDisplay(district)}, {format.toDisplay(city)}
+      </Title>
+      <BusinessGrid businesses={businessList} />
+      {renderOtherTypeButtons()}
+      {renderOtherDistrictButtons()}
+    </Container>
+  );
 }
