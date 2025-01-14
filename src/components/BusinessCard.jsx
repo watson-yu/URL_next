@@ -59,7 +59,6 @@ export default function BusinessCard({ business }) {
         </Text>
 
         <Badge 
-          color={typeInfo.color || 'gray'}
           variant="light"
           size="lg"
         >

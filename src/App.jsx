@@ -13,7 +13,41 @@ import { getTypeByService } from './data/services';
 
 export default function App() {
   return (
-    <MantineProvider withGlobalStyles withNormalizeCSS>
+    <MantineProvider
+      withGlobalStyles
+      withNormalizeCSS
+      theme={{
+        colors: {
+          // 主要品牌顏色
+          brand: [
+            '#eef3ff', // 0: 最淺
+            '#dce4f5', 
+            '#b9c7e2', 
+            '#94a7cc', 
+            '#7489b8', // 4: 主要使用的顏色
+            '#576da3', 
+            '#415189', 
+            '#2d3969', 
+            '#1c254b', 
+            '#0d1230'  // 9: 最深
+          ],
+        },
+        primaryColor: 'brand',
+        // 其他全局樣式設置
+        components: {
+          Button: {
+            defaultProps: {
+              color: 'brand'
+            }
+          },
+          Badge: {
+            defaultProps: {
+              color: 'brand'
+            }
+          }
+        }
+      }}
+    >
       <Router>
         <Routes>
           {/* Home */}

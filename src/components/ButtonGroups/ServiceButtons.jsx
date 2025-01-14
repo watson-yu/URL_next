@@ -31,7 +31,6 @@ export function ServiceButtons({
         <Button
           key={service}
           variant={service === currentService ? "filled" : "light"}
-          color={typeInfo.color}
           onClick={() => handleClick(service)}
           sx={{ flexShrink: 0 }}
         >
