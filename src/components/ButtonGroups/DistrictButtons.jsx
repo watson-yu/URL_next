@@ -37,7 +37,7 @@ export function DistrictButtons({
           : `${typeInfo.displayName} in Other Districts`
         }
       </Text>
-      <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
+      <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
         {availableDistricts.map((district) => (
           <Button
             key={district}

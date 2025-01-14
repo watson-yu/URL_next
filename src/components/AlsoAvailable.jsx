@@ -15,11 +15,11 @@ export default function AlsoAvailable({ currentType, city, district }) {
 
   const handleClick = (type) => {
     if (district) {
-      navigate(generatePath.district(type, city, district));
+      navigate(generatePath.actual.district(type, city, district));
     } else if (city) {
-      navigate(generatePath.city(type, city));
+      navigate(generatePath.actual.city(type, city));
     } else {
-      navigate(generatePath.type(type));
+      navigate(generatePath.actual.type(type));
     }
   };
 

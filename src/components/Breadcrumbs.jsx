@@ -23,7 +23,7 @@ export default function Breadcrumbs({ items }) {
         <Anchor
           key={index}
           component={Link}
-          to={item.path} // 保持顯示路徑
+          to={item.path}
           onClick={(e) => handleClick(e, item, index === items.length - 1)}
           color={index === items.length - 1 ? 'dimmed' : undefined}
           sx={index === items.length - 1 ? { 

@@ -1,7 +1,6 @@
 export const PAGE_SIZE = 4;
 export const MAX_SUGGESTIONS = 5;
 
-// 新的 URL 模式
 export const URL_PATTERNS = {
   // 實際路由路徑
   V_ROUTES: {
@@ -10,8 +9,8 @@ export const URL_PATTERNS = {
     DISTRICT: '/home/v/:type/:city/:district',
   },
   T_ROUTES: {
-    SERVICE_CITY: '/home/t/:type/:service/:city',
-    SERVICE_DISTRICT: '/home/t/:type/:service/:city/:district',
+    SERVICE_CITY: '/home/t/:service/:city',
+    SERVICE_DISTRICT: '/home/t/:service/:city/:district',
   },
   
   // 顯示用路徑（用於 breadcrumb）

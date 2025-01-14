@@ -32,10 +32,10 @@ export default function SearchBar() {
           action: () => navigate(generatePath.actual.city(type, city))
         });
 
-        // 3. 添加服務 + 商家類型 + 城市建議
+        // 3. 添加服務 + 城市建議（不再包含商家類型）
         typeInfo.services.forEach(service => {
           result.push({
-            value: `${format.toDisplay(service)} at ${typeInfo.displayName} in ${format.toDisplay(city)}`,
+            value: `${format.toDisplay(service)} in ${format.toDisplay(city)}`,
             type,
             service,
             city,
@@ -91,7 +91,7 @@ export default function SearchBar() {
           value={value}
           onChange={setValue}
           data={getFilteredSuggestions(value).map(s => s.value)}
-          placeholder="Try 'Hair Salon in Taipei' or 'Haircut at Beauty Salon'"
+          placeholder="Try 'Hair Salon in Taipei' or 'Haircut in Taipei'"
           sx={{ flex: 1 }}
           onOptionSubmit={handleSearch}
           onKeyPress={(e) => {

@@ -9,6 +9,7 @@ import ServiceCityPage from './pages/ServiceCityPage';
 import ServiceDistrictPage from './pages/ServiceDistrictPage';
 import BusinessDetail from './pages/BusinessDetail';
 import { URL_PATTERNS } from './constants';
+import { getTypeByService } from './data/services';
 
 export default function App() {
   return (
@@ -23,9 +24,9 @@ export default function App() {
           <Route path="/home/v/:type/:city" element={<CityPage />} />
           <Route path="/home/v/:type/:city/:district" element={<DistrictPage />} />
 
-          {/* New T Routes (Service-based) */}
-          <Route path="/home/t/:type/:service/:city" element={<ServiceCityPage />} />
-          <Route path="/home/t/:type/:service/:city/:district" element={<ServiceDistrictPage />} />
+          {/* New T Routes (Service-based) - Updated to remove type from URL */}
+          <Route path="/home/t/:service/:city" element={<ServiceCityPage />} />
+          <Route path="/home/t/:service/:city/:district" element={<ServiceDistrictPage />} />
 
           {/* Legacy Routes - Redirect to new routes */}
           <Route 
@@ -41,7 +42,7 @@ export default function App() {
               const { type, city } = location.params;
               if (city.includes('-')) {
                 const [service, actualCity] = city.split('-');
-                return `/home/t/${type}/${service}/${actualCity}`;
+                return `/home/t/${service}/${actualCity}`;
               }
               return `/home/v/${type}/${city}`;
             }} />} 
@@ -52,9 +53,25 @@ export default function App() {
               const { type, city, district } = location.params;
               if (city.includes('-')) {
                 const [service, actualCity] = city.split('-');
-                return `/home/t/${type}/${service}/${actualCity}/${district}`;
+                return `/home/t/${service}/${actualCity}/${district}`;
               }
               return `/home/v/${type}/${city}/${district}`;
+            }} />} 
+          />
+
+          {/* Legacy Service Routes - Redirect to new routes */}
+          <Route 
+            path="/home/t/:type/:service/:city" 
+            element={<Navigate replace to={location => {
+              const { service, city } = location.params;
+              return `/home/t/${service}/${city}`;
+            }} />} 
+          />
+          <Route 
+            path="/home/t/:type/:service/:city/:district" 
+            element={<Navigate replace to={location => {
+              const { service, city, district } = location.params;
+              return `/home/t/${service}/${city}/${district}`;
             }} />} 
           />
 

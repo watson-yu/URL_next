@@ -7,12 +7,13 @@ import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
 import { generatePath, locationUtils } from '../utils/routes';
 import { format } from '../utils/format';
-import { services } from '../data/services';
+import { services, getTypeByService } from '../data/services';
 
 export default function ServiceDistrictPage() {
   const navigate = useNavigate();
-  const { type, service, city, district } = useParams();
-  const typeInfo = services.types[type];
+  const { service, city, district } = useParams();
+  const type = getTypeByService(service);
+  const typeInfo = type ? services.types[type] : null;
   const allDistricts = locationUtils.getDistrictsForCity(city);
 
   if (!typeInfo || !locationUtils.isCityValid(city) || !locationUtils.isDistrictValid(city, district)) {
@@ -25,9 +26,6 @@ export default function ServiceDistrictPage() {
           The specified location does not exist in our directory.
         </Text>
         <Group position="center">
-          <Button onClick={() => navigate(generatePath.actual.type(type))}>
-            Back to {typeInfo?.displayName || 'Home'}
-          </Button>
           <Button onClick={() => navigate('/')}>
             Back to Home
           </Button>

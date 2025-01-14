@@ -3,6 +3,7 @@ import { Group, Button, Box } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../../data/services';
 import { generatePath } from '../../utils/routes';
+import { format } from '../../utils/format';
 
 export function ServiceButtons({ 
   type, 
@@ -25,7 +26,7 @@ export function ServiceButtons({
   };
 
   return (
-    <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
+    <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
       {typeInfo.services.map((service) => (
         <Button
           key={service}

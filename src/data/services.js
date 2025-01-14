@@ -17,3 +17,18 @@ export const services = {
     }
   }
 };
+
+// 新增：根據服務名稱獲取對應的商家類型
+export const getTypeByService = (service) => {
+  for (const [type, info] of Object.entries(services.types)) {
+    if (info.services.includes(service)) {
+      return type;
+    }
+  }
+  return null;
+};
+
+// 新增：檢查服務是否存在
+export const isValidService = (service) => {
+  return Boolean(getTypeByService(service));
+};

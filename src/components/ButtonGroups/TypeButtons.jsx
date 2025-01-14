@@ -27,7 +27,7 @@ export function TypeButtons({ currentType, city, district }) {
       <Text size="sm" weight={500} color="dimmed" mb="xs">
         Also Available
       </Text>
-      <Group spacing="sm" noWrap sx={{ padding: '4px' }}>
+      <Group spacing="sm" noWrap sx={{ padding: '4px', overflowX: 'auto' }}>
         {otherTypes.map(([type, info]) => (
           <Button
             key={type}

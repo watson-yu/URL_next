@@ -1,8 +1,8 @@
 import { locations } from '../data/locations';
-import { services } from '../data/services';
+import { services, isValidService } from '../data/services';
 import { URL_PATTERNS } from '../constants';
 
-// 首先定義 locationUtils 的具體函數
+// 定義 locationUtils 的具體函數
 const getAllCities = () => {
   try {
     const cities = [];
@@ -106,14 +106,9 @@ const validateDistrict = (city, district) => {
   }
 };
 
-const validateService = (type, service) => {
+const validateService = (service) => {
   try {
-    const typeInfo = services.types[type];
-    return Boolean(
-      typeInfo && 
-      service && 
-      typeInfo.services.includes(service)
-    );
+    return Boolean(isValidService(service));
   } catch (error) {
     console.error('Error validating service:', error);
     return false;
@@ -130,7 +125,6 @@ export const validatePath = {
 
 // 生成路徑函數
 export const generatePath = {
-  // 實際 URL 路徑生成
   actual: {
     type: (type) => {
       try {
@@ -171,11 +165,8 @@ export const generatePath = {
 
     serviceCity: (type, service, city) => {
       try {
-        if (!validatePath.type(type) || 
-            !validatePath.service(type, service) || 
-            !validatePath.city(city)) return '/';
+        if (!validatePath.service(service) || !validatePath.city(city)) return '/';
         return URL_PATTERNS.T_ROUTES.SERVICE_CITY
-          .replace(':type', type)
           .replace(':service', service)
           .replace(':city', city);
       } catch (error) {
@@ -186,12 +177,10 @@ export const generatePath = {
 
     serviceDistrict: (type, service, city, district) => {
       try {
-        if (!validatePath.type(type) || 
-            !validatePath.service(type, service) || 
+        if (!validatePath.service(service) || 
             !validatePath.city(city) || 
             !validatePath.district(city, district)) return '/';
         return URL_PATTERNS.T_ROUTES.SERVICE_DISTRICT
-          .replace(':type', type)
           .replace(':service', service)
           .replace(':city', city)
           .replace(':district', district);
@@ -202,7 +191,6 @@ export const generatePath = {
     }
   },
 
-  // Breadcrumb 顯示用路徑生成
   display: {
     type: (type) => {
       try {
@@ -244,7 +232,7 @@ export const generatePath = {
     serviceCity: (type, service, city) => {
       try {
         if (!validatePath.type(type) || 
-            !validatePath.service(type, service) || 
+            !validatePath.service(service) || 
             !validatePath.city(city)) return '/';
         return URL_PATTERNS.DISPLAY.SERVICE_CITY
           .replace(':type', type)
@@ -259,7 +247,7 @@ export const generatePath = {
     serviceDistrict: (type, service, city, district) => {
       try {
         if (!validatePath.type(type) || 
-            !validatePath.service(type, service) || 
+            !validatePath.service(service) || 
             !validatePath.city(city) || 
             !validatePath.district(city, district)) return '/';
         return URL_PATTERNS.DISPLAY.SERVICE_DISTRICT
