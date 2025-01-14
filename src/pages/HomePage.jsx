@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Button, Group, Box, SimpleGrid, Stack } from '@mantine/core';
+import { Container, Title, Button, Group, Box, Stack } from '@mantine/core';
 import SearchBar from '../components/SearchBar';
-import Breadcrumbs from '../components/Breadcrumbs';
 import BusinessGrid from '../components/BusinessGrid';
 import { businesses } from '../data/businesses';
 import { generatePath, locationUtils } from '../utils/routes';
@@ -33,60 +32,57 @@ export default function HomePage() {
     </Box>
   );
 
-  // 依城市搜尋陣列
-  const renderCityColumns = () => {
-    if (!allCities.length) return null;
-
-    // 將城市分為三列
-    const columns = [[], [], []];
-    allCities.forEach((city, index) => {
-      columns[index % 3].push(city);
-    });
-
-    return (
-      <Box mb="xl">
-        <Title order={3} size="h4" mb="md">Search by City</Title>
-        <SimpleGrid cols={3} spacing="md" breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
-          {columns.map((columnCities, columnIndex) => (
-            <Box key={columnIndex}>
-              {columnCities.map(city => (
-                <Box key={city} mb="md">
-                  <Title order={4} size="h5" mb="sm">
-                    {format.toDisplay(city)}
-                  </Title>
-                  <Stack spacing="xs">
-                    {Object.entries(services.types).map(([type, info]) => (
-                      <Button
-                        key={`${city}-${type}`}
-                        variant="light"
-                        size="sm"
-                        onClick={() => navigate(generatePath.actual.city(type, city))}
-                        fullWidth
-                      >
-                        {`${info.displayName} in ${format.toDisplay(city)}`}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
+  // 依城市搜尋（單行水平捲動）
+  const renderCityButtons = () => (
+    <Box mb="xl">
+      <Title order={3} size="h4" mb="md">Search by City</Title>
+      <Group spacing="sm" noWrap sx={{ 
+        padding: '4px', 
+        overflowX: 'auto',
+        '&::-webkit-scrollbar': {
+          height: '6px'
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#888',
+          borderRadius: '3px'
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#555'
+        }
+      }}>
+        {allCities.map(city => (
+          <Box key={city} sx={{ flexShrink: 0 }}>
+            <Title order={4} size="h5" mb="sm">
+              {format.toDisplay(city)}
+            </Title>
+            <Stack spacing="xs">
+              {Object.entries(services.types).map(([type, info]) => (
+                <Button
+                  key={`${city}-${type}`}
+                  variant="light"
+                  size="sm"
+                  onClick={() => navigate(generatePath.actual.city(type, city))}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  {`${info.displayName} in ${format.toDisplay(city)}`}
+                </Button>
               ))}
-            </Box>
-          ))}
-        </SimpleGrid>
-      </Box>
-    );
-  };
+            </Stack>
+          </Box>
+        ))}
+      </Group>
+    </Box>
+  );
 
   return (
     <Container size="md" py="xl">
-      <Breadcrumbs items={[]} />
-      <Title order={1} align="center" mb="xl">
-        Hair Services Directory
-      </Title>
-
       <SearchBar />
       {renderTypeButtons()}
-      {renderCityColumns()}
       <BusinessGrid businesses={allBusinesses} />
+      {renderCityButtons()}
     </Container>
   );
 }
