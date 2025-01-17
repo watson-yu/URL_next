@@ -36,9 +36,11 @@ export const generatePath = {
     city: (type: string, city: string) => `/home/v/${type}/${city}`,
     district: (type: string, city: string, district: string) => 
       `/home/v/${type}/${city}/${district}`,
-    serviceCity: (type: string, service: string, city: string) => 
+    business: (type: string, city: string, district: string, businessId: string) =>
+      `/home/${type}/${city}/${district}/${businessId}`,
+    serviceCity: (service: string, city: string) => 
       `/home/t/${service}/${city}`,
-    serviceDistrict: (type: string, service: string, city: string, district: string) => 
+    serviceDistrict: (service: string, city: string, district: string) => 
       `/home/t/${service}/${city}/${district}`,
   }
 }; 

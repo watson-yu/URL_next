@@ -56,5 +56,13 @@ export const businesses = {
       business.type === type && 
       business.location.city === city
     );
+  },
+
+  getByTypeAndCityAndDistrict: (type: string, city: string, district: string) => {
+    return allBusinesses.filter(business => 
+      business.type === type && 
+      business.location.city === city &&
+      business.location.district === district
+    );
   }
 }; 

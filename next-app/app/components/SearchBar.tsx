@@ -1,7 +1,7 @@
 'use client';
 
 import { Paper, Autocomplete, Group } from '@mantine/core';
-import { Button } from './Button';
+import { Button } from '@mantine/core';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { services } from '@/data/services';

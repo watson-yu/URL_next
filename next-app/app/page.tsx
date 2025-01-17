@@ -1,6 +1,6 @@
 import { Container } from '@/components/Container';
 import { services } from '@/data/services';
-import { Button } from '@/components/Button';
+import { Button } from '@mantine/core';
 import { Title, SimpleGrid, Group, Stack, ScrollArea } from '@mantine/core';
 import Link from 'next/link';
 import { generatePath } from '@/utils/routes';
