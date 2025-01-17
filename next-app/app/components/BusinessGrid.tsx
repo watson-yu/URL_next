@@ -23,7 +23,7 @@ interface BusinessGridProps {
 export function BusinessGrid({ businesses }: BusinessGridProps) {
   const [showAll, setShowAll] = useState(false);
 
-  if (!Array.isArray(businesses) || businesses.length === 0) {
+  if (!businesses?.length) {
     return (
       <Text ta="center" c="dimmed" mt="xl">
         No businesses found in this area

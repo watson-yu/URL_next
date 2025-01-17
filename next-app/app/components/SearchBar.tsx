@@ -37,7 +37,7 @@ export function SearchBar() {
       });
     });
 
-    return suggestions;
+    return suggestions.slice(0, MAX_SUGGESTIONS);
   };
 
   const suggestions = generateSuggestions();
@@ -51,7 +51,7 @@ export function SearchBar() {
 
   return (
     <Paper shadow="xs" p="md" mb="xl">
-      <Group spacing={8} grow>
+      <Group gap={8} grow>
         <Autocomplete
           value={value}
           onChange={setValue}

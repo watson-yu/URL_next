@@ -64,5 +64,26 @@ export const businesses = {
       business.location.city === city &&
       business.location.district === district
     );
+  },
+
+  getByService: (service: string) => {
+    return allBusinesses.filter(business => 
+      business.services?.includes(service)
+    );
+  },
+
+  getByServiceAndCity: (service: string, city: string) => {
+    return allBusinesses.filter(business => 
+      business.services?.includes(service) && 
+      business.location.city === city
+    );
+  },
+
+  getByServiceAndCityAndDistrict: (service: string, city: string, district: string) => {
+    return allBusinesses.filter(business => 
+      business.services?.includes(service) && 
+      business.location.city === city &&
+      business.location.district === district
+    );
   }
 }; 
