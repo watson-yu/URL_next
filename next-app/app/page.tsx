@@ -1,14 +1,18 @@
 import { Container } from '@/components/Container';
 import { services } from '@/data/services';
 import { Button } from '@/components/Button';
-import { Title, SimpleGrid, Group, Stack } from '@mantine/core';
+import { Title, SimpleGrid, Group, Stack, ScrollArea } from '@mantine/core';
 import Link from 'next/link';
 import { generatePath } from '@/utils/routes';
 import { SearchBar } from '@/components/SearchBar';
 import { locations } from '@/data/locations';
 import { format } from '@/utils/format';
+import { businesses } from '@/data/businesses';
+import { BusinessCard } from '@/components/BusinessCard';
 
 export default function HomePage() {
+  const featureBusinesses = businesses.getAll().slice(0, 4);
+
   return (
     <Container size="md" py="xl">
       <SearchBar />
@@ -39,7 +43,9 @@ export default function HomePage() {
             Feature Shops
           </Title>
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-            {/* We'll implement BusinessCard component next */}
+            {featureBusinesses.map((business) => (
+              <BusinessCard key={business.id} business={business} />
+            ))}
           </SimpleGrid>
         </div>
 
@@ -48,28 +54,30 @@ export default function HomePage() {
           <Title order={2} size="h3" mb="md">
             Search by City
           </Title>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
-            {Object.values(locations.countries).map(country => 
-              Object.keys(country.cities).map(city => (
-                <Stack key={city} spacing="xs">
-                  <Title order={3} size="h4">
-                    {format.toDisplay(city)}
-                  </Title>
-                  {Object.entries(services.types).map(([type, info]) => (
-                    <Button
-                      key={type}
-                      component={Link}
-                      href={generatePath.actual.city(type, city)}
-                      variant="light"
-                      fullWidth
-                    >
-                      {info.displayName} in {format.toDisplay(city)}
-                    </Button>
-                  ))}
-                </Stack>
-              ))
-            )}
-          </SimpleGrid>
+          <ScrollArea>
+            <Group gap="xl" wrap="nowrap" pr="md">
+              {Object.values(locations.countries).map(country => 
+                Object.keys(country.cities).map(city => (
+                  <Stack key={city} spacing="xs" style={{ minWidth: 200 }}>
+                    <Title order={3} size="h4">
+                      {format.toDisplay(city)}
+                    </Title>
+                    {Object.entries(services.types).map(([type, info]) => (
+                      <Button
+                        key={type}
+                        component={Link}
+                        href={generatePath.actual.city(type, city)}
+                        variant="light"
+                        fullWidth
+                      >
+                        {info.displayName} in {format.toDisplay(city)}
+                      </Button>
+                    ))}
+                  </Stack>
+                ))
+              )}
+            </Group>
+          </ScrollArea>
         </div>
       </Stack>
     </Container>
