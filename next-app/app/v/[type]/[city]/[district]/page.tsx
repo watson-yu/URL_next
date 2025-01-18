@@ -8,37 +8,49 @@ import { Title, Group, Stack, Button } from '@mantine/core';
 import { BusinessGrid } from '@/components/BusinessGrid';
 import { SearchBar } from '@/components/SearchBar';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { generatePath } from '@/utils/routes';
 import Link from 'next/link';
 
-export default function CityPage({ 
-  params 
-}: { 
-  params: { type: string; city: string } 
-}) {
+interface DistrictPageProps {
+  params: {
+    type: string;
+    city: string;
+    district: string;
+  };
+}
+
+export default function DistrictPage({ params }: DistrictPageProps) {
   const typeInfo = services.types[params.type];
   
-  if (!typeInfo || !locationUtils.isCityValid(params.city)) {
+  if (!typeInfo || !locationUtils.isCityValid(params.city) || 
+      !locationUtils.isDistrictValid(params.city, params.district)) {
     notFound();
   }
 
-  const businessList = businesses.getByTypeAndCity(params.type, params.city);
-  const districts = locationUtils.getDistrictsForCity(params.city);
+  const businessList = businesses.getByTypeAndCityAndDistrict(
+    params.type,
+    params.city,
+    params.district
+  );
 
-  // Get other business types for the "Other Business Types" section
-  const otherTypes = Object.entries(services.types)
-    .filter(([type]) => type !== params.type);
+  // Get other districts for the city
+  const otherDistricts = locationUtils.getDistrictsForCity(params.city)
+    .filter(d => d !== params.district);
 
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
-      path: generatePath.actual.type(params.type),
-      actualPath: generatePath.actual.type(params.type)
+      path: `/v/${params.type}`,
+      actualPath: `/v/${params.type}`
     },
     {
       label: format.toDisplay(params.city),
-      path: generatePath.actual.city(params.type, params.city),
-      actualPath: generatePath.actual.city(params.type, params.city)
+      path: `/v/${params.type}/${params.city}`,
+      actualPath: `/v/${params.type}/${params.city}`
+    },
+    {
+      label: format.toDisplay(params.district),
+      path: `/v/${params.type}/${params.city}/${params.district}`,
+      actualPath: `/v/${params.type}/${params.city}/${params.district}`
     }
   ];
 
@@ -47,16 +59,16 @@ export default function CityPage({
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
       
-      <Stack spacing="xl">
+      <Stack gap="xl">
         {/* Available Services */}
-        <Stack spacing="md">
+        <Stack gap="md">
           <Title order={2} size="h3">
             Available Services
           </Title>
           <Group>
             <Button
               component={Link}
-              href={generatePath.actual.city(params.type, params.city)}
+              href={`/v/${params.type}/${params.city}/${params.district}`}
               variant="filled"
               color="blue"
             >
@@ -66,7 +78,7 @@ export default function CityPage({
               <Button
                 key={service}
                 component={Link}
-                href={generatePath.actual.serviceCity(service, params.city)}
+                href={`/t/${service}/${params.city}/${params.district}`}
                 variant="light"
               >
                 {format.toDisplay(service)}
@@ -75,44 +87,46 @@ export default function CityPage({
           </Group>
         </Stack>
 
-        {/* Best Hair Salons */}
-        <Stack spacing="md">
+        {/* Best Businesses */}
+        <Stack gap="md">
           <Title order={2} size="h3">
-            Best {typeInfo.displayName}s near me in {format.toDisplay(params.city)}
+            Best {typeInfo.displayName}s near me in {format.toDisplay(params.district)}, {format.toDisplay(params.city)}
           </Title>
           <BusinessGrid businesses={businessList} />
         </Stack>
 
         {/* Other Business Types */}
-        <Stack spacing="md">
+        <Stack gap="md">
           <Title order={2} size="h3">
             Other Business Types
           </Title>
           <Group>
-            {otherTypes.map(([type, info]) => (
-              <Button
-                key={type}
-                component={Link}
-                href={generatePath.actual.city(type, params.city)}
-                variant="light"
-              >
-                {info.displayName}
-              </Button>
-            ))}
+            {Object.entries(services.types)
+              .filter(([type]) => type !== params.type)
+              .map(([type, info]) => (
+                <Button
+                  key={type}
+                  component={Link}
+                  href={`/v/${type}/${params.city}/${params.district}`}
+                  variant="light"
+                >
+                  {info.displayName}
+                </Button>
+              ))}
           </Group>
         </Stack>
 
-        {/* Hair Salon in Districts */}
-        <Stack spacing="md">
+        {/* Hair Salon in Other Districts */}
+        <Stack gap="md">
           <Title order={2} size="h3">
-            {typeInfo.displayName} in Districts
+            {typeInfo.displayName} in Other Districts
           </Title>
           <Group>
-            {districts.map((district) => (
+            {otherDistricts.map((district) => (
               <Button
                 key={district}
                 component={Link}
-                href={generatePath.actual.district(params.type, params.city, district)}
+                href={`/v/${params.type}/${params.city}/${district}`}
                 variant="light"
               >
                 {typeInfo.displayName} in {format.toDisplay(district)}

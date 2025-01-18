@@ -32,15 +32,11 @@ export const locationUtils = {
 
 export const generatePath = {
   actual: {
-    type: (type: string) => `/home/v/${type}`,
-    city: (type: string, city: string) => `/home/v/${type}/${city}`,
-    district: (type: string, city: string, district: string) => 
-      `/home/v/${type}/${city}/${district}`,
-    business: (type: string, city: string, district: string, businessId: string) =>
-      `/home/${type}/${city}/${district}/${businessId}`,
-    serviceCity: (service: string, city: string) => 
-      `/home/t/${service}/${city}`,
-    serviceDistrict: (service: string, city: string, district: string) => 
-      `/home/t/${service}/${city}/${district}`,
+    type: (type: string) => `/${type}`,
+    name: (type: string, name: string) => `/${type}/${name}`,
+    city: (type: string, name: string, city: string) => 
+      `/${type}/${name}/${city}`,
+    district: (type: string, name: string, city: string, district: string) => 
+      `/${type}/${name}/${city}/${district}`,
   }
 }; 

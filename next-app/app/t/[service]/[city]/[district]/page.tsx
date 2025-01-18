@@ -8,17 +8,17 @@ import { Title, Group, Stack, Button } from '@mantine/core';
 import { BusinessGrid } from '@/components/BusinessGrid';
 import { SearchBar } from '@/components/SearchBar';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { generatePath } from '@/utils/routes';
 import Link from 'next/link';
 
-interface ServicePageProps {
+interface ServiceDistrictPageProps {
   params: {
     service: string;
     city: string;
+    district: string;
   };
 }
 
-export default function ServiceCityPage({ params }: ServicePageProps) {
+export default function ServiceDistrictPage({ params }: ServiceDistrictPageProps) {
   // Find which type this service belongs to
   let serviceType: string | undefined;
   let typeInfo: any;
@@ -30,28 +30,33 @@ export default function ServiceCityPage({ params }: ServicePageProps) {
     }
   });
 
-  if (!serviceType || !typeInfo || !locationUtils.isCityValid(params.city)) {
+  if (!serviceType || !typeInfo || 
+      !locationUtils.isCityValid(params.city) ||
+      !locationUtils.isDistrictValid(params.city, params.district)) {
     notFound();
   }
 
-  const businessList = businesses.getByServiceAndCity(params.service, params.city);
-  const districts = locationUtils.getDistrictsForCity(params.city);
+  const businessList = businesses.getByServiceAndCityAndDistrict(
+    params.service,
+    params.city,
+    params.district
+  );
 
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
-      path: generatePath.actual.type(serviceType),
-      actualPath: generatePath.actual.type(serviceType)
-    },
-    {
-      label: format.toDisplay(params.city),
-      path: generatePath.actual.city(serviceType, params.city),
-      actualPath: generatePath.actual.city(serviceType, params.city)
+      path: `/v/${serviceType}`,
+      actualPath: `/v/${serviceType}`
     },
     {
       label: format.toDisplay(params.service),
-      path: generatePath.actual.serviceCity(params.service, params.city),
-      actualPath: generatePath.actual.serviceCity(params.service, params.city)
+      path: `/t/${params.service}/${params.city}`,
+      actualPath: `/t/${params.service}/${params.city}`
+    },
+    {
+      label: format.toDisplay(params.district),
+      path: `/t/${params.service}/${params.city}/${params.district}`,
+      actualPath: `/t/${params.service}/${params.city}/${params.district}`
     }
   ];
 
@@ -60,16 +65,16 @@ export default function ServiceCityPage({ params }: ServicePageProps) {
       <SearchBar />
       <Breadcrumbs items={breadcrumbItems} />
       
-      <Stack spacing="xl">
+      <Stack gap="xl">
         {/* Available Services */}
-        <Stack spacing="md">
+        <Stack gap="md">
           <Title order={2} size="h3">
             Available Services
           </Title>
           <Group>
             <Button
               component={Link}
-              href={generatePath.actual.city(serviceType, params.city)}
+              href={`/v/${serviceType}/${params.city}/${params.district}`}
               variant="light"
             >
               {typeInfo.displayName}
@@ -78,7 +83,7 @@ export default function ServiceCityPage({ params }: ServicePageProps) {
               <Button
                 key={service}
                 component={Link}
-                href={generatePath.actual.serviceCity(service, params.city)}
+                href={`/t/${service}/${params.city}/${params.district}`}
                 variant={service === params.service ? "filled" : "light"}
                 color={service === params.service ? "blue" : undefined}
               >
@@ -89,29 +94,31 @@ export default function ServiceCityPage({ params }: ServicePageProps) {
         </Stack>
 
         {/* Best Service Providers */}
-        <Stack spacing="md">
+        <Stack gap="md">
           <Title order={2} size="h3">
-            Best {format.toDisplay(params.service)} near me in {format.toDisplay(params.city)}
+            Best {format.toDisplay(params.service)} near me in {format.toDisplay(params.district)}, {format.toDisplay(params.city)}
           </Title>
           <BusinessGrid businesses={businessList} />
         </Stack>
 
-        {/* Service in Districts */}
-        <Stack spacing="md">
+        {/* Other Business Types */}
+        <Stack gap="md">
           <Title order={2} size="h3">
-            {format.toDisplay(params.service)} in Districts
+            Other Business Types
           </Title>
           <Group>
-            {districts.map((district) => (
-              <Button
-                key={district}
-                component={Link}
-                href={generatePath.actual.serviceDistrict(params.service, params.city, district)}
-                variant="light"
-              >
-                {format.toDisplay(params.service)} in {format.toDisplay(district)}
-              </Button>
-            ))}
+            {Object.entries(services.types)
+              .filter(([type]) => type !== serviceType)
+              .map(([type, info]) => (
+                <Button
+                  key={type}
+                  component={Link}
+                  href={`/v/${type}/${params.city}/${params.district}`}
+                  variant="light"
+                >
+                  {info.displayName}
+                </Button>
+              ))}
           </Group>
         </Stack>
       </Stack>

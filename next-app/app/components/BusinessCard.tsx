@@ -39,7 +39,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
       return;
     }
 
-    router.push(`/home/${type}/${city}/${district}/${businessId}`);
+    router.push(`/v/${type}/${city}/${district}/${businessId}`);
   };
 
   return (

@@ -28,7 +28,7 @@ export default function HomePage() {
               <Button
                 key={type}
                 component={Link}
-                href={generatePath.actual.type(type)}
+                href={`/v/${type}`}
                 variant="light"
               >
                 {info.displayName}
@@ -66,7 +66,7 @@ export default function HomePage() {
                       <Button
                         key={type}
                         component={Link}
-                        href={generatePath.actual.city(type, city)}
+                        href={`/v/${type}/${city}`}
                         variant="light"
                         fullWidth
                       >

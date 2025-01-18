@@ -7,8 +7,6 @@ import { notFound } from 'next/navigation';
 import { Title, Text, Stack, Group, Badge, Card, Button } from '@mantine/core';
 import { SearchBar } from '@/components/SearchBar';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { generatePath } from '@/utils/routes';
-import { AlsoAvailable } from '@/components/AlsoAvailable';
 import Link from 'next/link';
 
 interface BusinessDetailPageProps {
@@ -33,23 +31,23 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
   const breadcrumbItems = [
     {
       label: typeInfo.displayName,
-      path: generatePath.actual.type(params.type),
-      actualPath: generatePath.actual.type(params.type)
+      path: `/v/${params.type}`,
+      actualPath: `/v/${params.type}`
     },
     {
       label: format.toDisplay(params.city),
-      path: generatePath.actual.city(params.type, params.city),
-      actualPath: generatePath.actual.city(params.type, params.city)
+      path: `/v/${params.type}/${params.city}`,
+      actualPath: `/v/${params.type}/${params.city}`
     },
     {
       label: format.toDisplay(params.district),
-      path: generatePath.actual.district(params.type, params.city, params.district),
-      actualPath: generatePath.actual.district(params.type, params.city, params.district)
+      path: `/v/${params.type}/${params.city}/${params.district}`,
+      actualPath: `/v/${params.type}/${params.city}/${params.district}`
     },
     {
       label: business.name,
-      path: generatePath.actual.business(params.type, params.city, params.district, params.businessId),
-      actualPath: generatePath.actual.business(params.type, params.city, params.district, params.businessId)
+      path: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`,
+      actualPath: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`
     }
   ];
 
@@ -90,7 +88,7 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
               <Button
                 key={service}
                 component={Link}
-                href={generatePath.actual.serviceCity(service, params.city)}
+                href={`/t/${service}/${params.city}`}
                 variant="light"
               >
                 {format.toDisplay(service)}
@@ -98,13 +96,6 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
             ))}
           </Group>
         </Stack>
-
-        {/* Also Available */}
-        <AlsoAvailable 
-          currentType={params.type}
-          currentCity={params.city}
-          currentDistrict={params.district}
-        />
       </Stack>
     </Container>
   );
