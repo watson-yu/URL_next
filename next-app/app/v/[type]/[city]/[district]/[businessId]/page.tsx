@@ -1,15 +1,12 @@
 import { Container } from '@/components/Container';
-import { services } from '@/data/services';
 import { businesses } from '@/data/businesses';
-import { locationUtils } from '@/utils/routes';
+import { getServices } from '@/data/services';
 import { format } from '@/utils/format';
 import { notFound } from 'next/navigation';
-import { Title, Text, Stack, Group, Badge, Card, Button } from '@mantine/core';
-import { SearchBar } from '@/components/SearchBar';
+import { Title, Badge, Stack, Group } from '@mantine/core';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import Link from 'next/link';
 
-interface BusinessDetailPageProps {
+interface PageProps {
   params: {
     type: string;
     city: string;
@@ -18,85 +15,101 @@ interface BusinessDetailPageProps {
   };
 }
 
-export default function BusinessDetailPage({ params }: BusinessDetailPageProps) {
-  const business = businesses.getById(Number(params.businessId));
-  const typeInfo = services.types[params.type];
-  
-  if (!business || !typeInfo || 
-      !locationUtils.isCityValid(params.city) || 
-      !locationUtils.isDistrictValid(params.city, params.district)) {
-    notFound();
-  }
+export default async function BusinessPage({ params }: PageProps) {
+  try {
+    const [business, services] = await Promise.all([
+      businesses.getById(parseInt(params.businessId)),
+      getServices()
+    ]);
 
-  const breadcrumbItems = [
-    {
-      label: typeInfo.displayName,
-      path: `/v/${params.type}`,
-      actualPath: `/v/${params.type}`
-    },
-    {
-      label: format.toDisplay(params.city),
-      path: `/v/${params.type}/${params.city}`,
-      actualPath: `/v/${params.type}/${params.city}`
-    },
-    {
-      label: format.toDisplay(params.district),
-      path: `/v/${params.type}/${params.city}/${params.district}`,
-      actualPath: `/v/${params.type}/${params.city}/${params.district}`
-    },
-    {
-      label: business.name,
-      path: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`,
-      actualPath: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`
+    if (!business) {
+      notFound();
     }
-  ];
 
-  return (
-    <Container size="md" py="xl">
-      <SearchBar />
-      <Breadcrumbs items={breadcrumbItems} />
-      
-      <Stack gap="xl">
-        {/* Business Info */}
-        <Card withBorder>
-          <Stack gap="md">
-            <Title order={1} size="h2">
-              {business.name}
-            </Title>
+    const typeInfo = services.types[params.type];
+    if (!typeInfo) {
+      notFound();
+    }
 
-            <Group>
-              <Badge size="lg" variant="light">
-                {typeInfo.displayName}
-              </Badge>
-            </Group>
+    const treatments = typeInfo.treatments || [];
+    const serviceDetails = treatments.filter(t => 
+      business.services.includes(t.slug)
+    );
 
-            <Text size="lg" c="dimmed">
-              {format.toDisplay(business.location.district)}, 
-              {format.toDisplay(business.location.city)}, 
-              {business.location.country}
-            </Text>
-          </Stack>
-        </Card>
+    const breadcrumbs = [
+      {
+        label: typeInfo.displayName,
+        path: `/v/${params.type}`,
+        actualPath: `/v/${params.type}`
+      },
+      {
+        label: format.toDisplay(params.city),
+        path: `/v/${params.type}/${params.city}`,
+        actualPath: `/v/${params.type}/${params.city}`
+      },
+      {
+        label: format.toDisplay(params.district),
+        path: `/v/${params.type}/${params.city}/${params.district}`,
+        actualPath: `/v/${params.type}/${params.city}/${params.district}`
+      },
+      {
+        label: business.name,
+        path: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`,
+        actualPath: `/v/${params.type}/${params.city}/${params.district}/${params.businessId}`
+      }
+    ];
 
-        {/* Available Services */}
-        <Stack gap="md">
-          <Title order={2} size="h3">
-            Available Services
+    return (
+      <Container size="md" py="xl">
+        <Stack spacing="xl">
+          <Breadcrumbs items={breadcrumbs} />
+
+          <Title order={1} size="h2">
+            {business.name}
           </Title>
-          <Group>
-            {business.services?.map((service) => (
-              <Button
-                key={service}
-                component={Link}
-                href={`/t/${service}/${params.city}`}
-                variant="light"
-              >
-                {format.toDisplay(service)}
-              </Button>
-            ))}
-          </Group>
+
+          <Badge variant="light" size="lg">
+            {typeInfo.displayName.toUpperCase()}
+          </Badge>
+
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Location
+            </Title>
+            <div>
+              {[
+                format.toDisplay(business.district),
+                format.toDisplay(business.city),
+                business.country
+              ].filter(Boolean).join(', ')}
+            </div>
+          </Stack>
+
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Services
+            </Title>
+            <Group>
+              {serviceDetails.map(service => (
+                <Badge 
+                  key={service.slug} 
+                  variant="outline"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  {service.treatment}
+                </Badge>
+              ))}
+            </Group>
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
-  );
+      </Container>
+    );
+  } catch (error) {
+    console.error('Error in BusinessPage:', error);
+    return (
+      <Container size="md" py="xl">
+        <div>Something went wrong. Please try again later.</div>
+      </Container>
+    );
+  }
 } 

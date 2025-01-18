@@ -1,66 +1,108 @@
 import { Container } from '@/components/Container';
-import { services } from '@/data/services';
-import { Button } from '@mantine/core';
-import { Title, SimpleGrid, Group, Stack, ScrollArea } from '@mantine/core';
-import Link from 'next/link';
-import { generatePath } from '@/utils/routes';
-import { SearchBar } from '@/components/SearchBar';
-import { locations } from '@/data/locations';
-import { format } from '@/utils/format';
+import { getServices } from '@/data/services';
 import { businesses } from '@/data/businesses';
+import { Title, SimpleGrid, Group, Stack, ScrollArea } from '@mantine/core';
+import { Button } from '@mantine/core';
+import Link from 'next/link';
+import { SearchBar } from '@/components/SearchBar';
 import { BusinessCard } from '@/components/BusinessCard';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { getLocations } from '@/data/locations';
+import { format } from '@/utils/format';
 
-export default function HomePage() {
-  const featureBusinesses = businesses.getAll().slice(0, 4);
+export default async function HomePage() {
+  try {
+    const [services, featureBusinesses, locations] = await Promise.all([
+      getServices(),
+      businesses.getFeatured(),
+      getLocations()
+    ]);
 
-  return (
-    <Container size="md" py="xl">
-      <SearchBar />
+    // Group cities by country
+    const cities = Object.values(locations.countries)
+      .flatMap(country => 
+        Object.keys(country.cities).map(city => ({
+          city,
+          displayName: format.toDisplay(city)
+        }))
+      );
 
-      <Stack spacing="xl">
-        {/* Business Types */}
-        <div>
-          <Title order={2} size="h3" mb="md">
-            Business Types
-          </Title>
-          <Group>
-            {Object.entries(services.types).map(([type, info]) => (
-              <Button
-                key={type}
-                component={Link}
-                href={`/v/${type}`}
-                variant="light"
-              >
-                {info.displayName}
-              </Button>
-            ))}
-          </Group>
-        </div>
+    return (
+      <Container size="md" py="xl">
+        <Stack spacing="xl">
+          <SearchBar />
 
-        {/* Feature Shops */}
-        <div>
-          <Title order={2} size="h3" mb="md">
-            Feature Shops
-          </Title>
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-            {featureBusinesses.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </SimpleGrid>
-        </div>
+          {/* Business Types */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Business Types
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {Object.entries(services.types).map(([type, info]) => (
+                  <Button
+                    key={type}
+                    component={Link}
+                    href={`/v/${type}`}
+                    variant="light"
+                    style={{ minWidth: 'fit-content' }}
+                  >
+                    {info.displayName}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
 
-        {/* Search by City */}
-        <div>
-          <Title order={2} size="h3" mb="md">
-            Search by City
-          </Title>
-          <ScrollArea>
-            <Group gap="xl" wrap="nowrap" pr="md">
-              {Object.values(locations.countries).map(country => 
-                Object.keys(country.cities).map(city => (
+          {/* Feature Shops */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Feature Shops
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {featureBusinesses.map((business) => (
+                  <div key={business.id} style={{ minWidth: 300 }}>
+                    <BusinessCard business={business} />
+                  </div>
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+
+          {/* Other Business Types */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Other Business Types
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {Object.entries(services.types).map(([type, info]) => (
+                  <Button
+                    key={type}
+                    component={Link}
+                    href={`/v/${type}`}
+                    variant="light"
+                    style={{ minWidth: 'fit-content' }}
+                  >
+                    {info.displayName}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+
+          {/* Search by City */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Search by City
+            </Title>
+            <ScrollArea>
+              <Group gap="xl" wrap="nowrap" pr="md">
+                {cities.map(({ city, displayName }) => (
                   <Stack key={city} spacing="xs" style={{ minWidth: 200 }}>
                     <Title order={3} size="h4">
-                      {format.toDisplay(city)}
+                      {displayName}
                     </Title>
                     {Object.entries(services.types).map(([type, info]) => (
                       <Button
@@ -70,16 +112,23 @@ export default function HomePage() {
                         variant="light"
                         fullWidth
                       >
-                        {info.displayName} in {format.toDisplay(city)}
+                        {info.displayName} in {displayName}
                       </Button>
                     ))}
                   </Stack>
-                ))
-              )}
-            </Group>
-          </ScrollArea>
-        </div>
-      </Stack>
-    </Container>
-  );
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+        </Stack>
+      </Container>
+    );
+  } catch (error) {
+    console.error('Error in HomePage:', error);
+    return (
+      <Container size="md" py="xl">
+        <ErrorDisplay message="Failed to load data" />
+      </Container>
+    );
+  }
 } 

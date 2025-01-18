@@ -10,6 +10,10 @@ interface BreadcrumbItem {
   actualPath: string;
 }
 
+interface BreadcrumbsProps {
+  items: BreadcrumbItem[];
+}
+
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   const router = useRouter();
   

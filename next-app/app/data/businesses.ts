@@ -1,89 +1,46 @@
-import { locations } from './locations';
-import { services } from './services';
-import { format } from '../utils/format';
-
-const generateBusinesses = () => {
-  const allBusinesses = [];
-  let globalId = 1;
-  
-  Object.entries(locations.countries).forEach(([country, countryData]) => {
-    Object.entries(countryData.cities).forEach(([city, cityData]) => {
-      cityData.districts.forEach(district => {
-        Object.entries(services.types).forEach(([typeKey, typeInfo]) => {
-          // Generate 2-4 businesses for each district and type
-          const numBusinesses = Math.floor(Math.random() * 3) + 2;
-          
-          for (let i = 0; i < numBusinesses; i++) {
-            const businessNumber = i + 1;
-            const businessName = `${typeInfo.displayName} ${format.toDisplay(district)} ${businessNumber}`;
-            
-            allBusinesses.push({
-              id: globalId++,
-              name: businessName,
-              type: typeKey,
-              services: typeInfo.services,
-              displayName: typeInfo.displayName,
-              location: {
-                country,
-                city,
-                district
-              }
-            });
-          }
-        });
-      });
-    });
-  });
-
-  return allBusinesses;
-};
-
-const allBusinesses = generateBusinesses();
+import { apiClient } from '../utils/api-client';
 
 export const businesses = {
-  getAll: () => allBusinesses,
+  async getAll() {
+    const data = await apiClient.getBusinesses();
+    return data.businesses;
+  },
   
-  getById: (id: number) => {
-    return allBusinesses.find(business => business.id === id);
+  async getById(id: number) {
+    return await apiClient.getBusiness(id);
   },
 
-  getByType: (type: string) => {
-    return allBusinesses.filter(business => business.type === type);
+  async getByType(type: string) {
+    const data = await apiClient.getBusinesses({ type });
+    return data.businesses;
   },
 
-  getByTypeAndCity: (type: string, city: string) => {
-    return allBusinesses.filter(business => 
-      business.type === type && 
-      business.location.city === city
-    );
+  async getByTypeAndCity(type: string, city: string) {
+    const data = await apiClient.getBusinesses({ type, city });
+    return data.businesses;
   },
 
-  getByTypeAndCityAndDistrict: (type: string, city: string, district: string) => {
-    return allBusinesses.filter(business => 
-      business.type === type && 
-      business.location.city === city &&
-      business.location.district === district
-    );
+  async getByTypeAndCityAndDistrict(type: string, city: string, district: string) {
+    const data = await apiClient.getBusinesses({ type, city, district });
+    return data.businesses;
   },
 
-  getByService: (service: string) => {
-    return allBusinesses.filter(business => 
-      business.services?.includes(service)
-    );
+  async getByService(service: string) {
+    const data = await apiClient.getBusinesses({ service });
+    return data.businesses;
   },
 
-  getByServiceAndCity: (service: string, city: string) => {
-    return allBusinesses.filter(business => 
-      business.services?.includes(service) && 
-      business.location.city === city
-    );
+  async getByServiceAndCity(service: string, city: string) {
+    const data = await apiClient.getBusinesses({ service, city });
+    return data.businesses;
   },
 
-  getByServiceAndCityAndDistrict: (service: string, city: string, district: string) => {
-    return allBusinesses.filter(business => 
-      business.services?.includes(service) && 
-      business.location.city === city &&
-      business.location.district === district
-    );
+  async getByServiceAndCityAndDistrict(service: string, city: string, district: string) {
+    const data = await apiClient.getBusinesses({ service, city, district });
+    return data.businesses;
+  },
+
+  async getFeatured(limit = 4) {
+    return await apiClient.getFeaturedBusinesses(limit);
   }
 }; 

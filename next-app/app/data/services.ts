@@ -1,51 +1,61 @@
-export const services = {
+import { apiClient } from '../utils/api-client';
+
+interface ServiceType {
+  displayName: string;
+  services: string[];
+}
+
+interface ServicesData {
   types: {
-    hair_salon: {
-      displayName: "Hair Salon",
-      services: [
-        "womens_haircut",
-        "hair_coloring",
-        "hair_styling",
-        "hair_treatment"
-      ]
-    },
-    beauty_salon: {
-      displayName: "Beauty Salon",
-      services: [
-        "facial_treatment",
-        "beauty_manicure",
-        "beauty_pedicure",
-        "makeup",
-        "skin_care"
-      ]
-    },
-    barbershop: {
-      displayName: "Barbershop",
-      services: [
-        "mens_haircut",
-        "shaving",
-        "beard_trimming",
-        "mens_styling"
-      ]
-    },
-    nail_salon: {
-      displayName: "Nail Salon",
-      services: [
-        "nail_manicure",
-        "nail_pedicure",
-        "nail_art",
-        "nail_care",
-        "gel_nails"
-      ]
-    }
+    [key: string]: ServiceType;
+  };
+}
+
+async function fetchServices(): Promise<ServicesData> {
+  try {
+    const categories = await apiClient.getCategories();
+    const services: ServicesData = {
+      types: {}
+    };
+
+    // Fetch treatments for each category
+    await Promise.all(
+      categories.map(async (category) => {
+        const treatments = await apiClient.getTreatmentsByCategory(category.slug);
+        
+        services.types[category.slug] = {
+          displayName: category.display_name,
+          services: treatments.map(t => t.slug)
+        };
+      })
+    );
+
+    return services;
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    // Fallback to empty structure if API fails
+    return { types: {} };
   }
+}
+
+// Export an async function to get services
+export async function getServices(): Promise<ServicesData> {
+  return await fetchServices();
+}
+
+// For backward compatibility, export empty services initially
+export const services: ServicesData = {
+  types: {}
 };
 
-export const getTypeByService = (service: string) => {
-  for (const [type, info] of Object.entries(services.types)) {
-    if (info.services.includes(service)) {
-      return type;
+// Helper function to find category by treatment
+export async function getCategoryByTreatment(treatmentSlug: string): Promise<string | null> {
+  const servicesData = await getServices();
+  
+  for (const [category, info] of Object.entries(servicesData.types)) {
+    if (info.services.includes(treatmentSlug)) {
+      return category;
     }
   }
   return null;
-}; 
+} 

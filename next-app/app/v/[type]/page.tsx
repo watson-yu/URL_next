@@ -1,107 +1,159 @@
 import { Container } from '@/components/Container';
-import { services } from '@/data/services';
+import { getServices } from '@/data/services';
 import { businesses } from '@/data/businesses';
+import { getLocations } from '@/data/locations';
 import { format } from '@/utils/format';
 import { notFound } from 'next/navigation';
-import { Title, Group, Stack, Button } from '@mantine/core';
-import { BusinessGrid } from '@/components/BusinessGrid';
-import { SearchBar } from '@/components/SearchBar';
-import Link from 'next/link';
-import { locations } from '@/data/locations';
+import { Title, Stack, Group, ScrollArea, Button, SimpleGrid } from '@mantine/core';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { SearchBar } from '@/components/SearchBar';
+import { BusinessCard } from '@/components/BusinessCard';
+import Link from 'next/link';
 
-export default function TypePage({ params }: { params: { type: string } }) {
-  const typeInfo = services.types[params.type];
-  
-  if (!typeInfo) {
-    notFound();
-  }
+interface PageProps {
+  params: {
+    type: string;
+  };
+}
 
-  const businessList = businesses.getByType(params.type);
-  const allCities = Object.values(locations.countries)
-    .flatMap(country => Object.keys(country.cities));
+export default async function TypePage({ params: { type } }: PageProps) {
+  try {
+    const [services, businessList, locations] = await Promise.all([
+      getServices(),
+      businesses.getByType(type),
+      getLocations()
+    ]);
 
-  // Get other business types
-  const otherTypes = Object.entries(services.types)
-    .filter(([type]) => type !== params.type);
+    // Show only first 4 businesses initially
+    const displayBusinesses = businessList.slice(0, 4);
+    const hasMoreBusinesses = businessList.length > 4;
 
-  const breadcrumbItems = [
-    {
-      label: typeInfo.displayName,
-      path: `/v/${params.type}`,
-      actualPath: `/v/${params.type}`
+    const typeInfo = services.types[type];
+    if (!typeInfo) {
+      notFound();
     }
-  ];
 
-  return (
-    <Container size="md" py="xl">
-      <SearchBar />
-      <Breadcrumbs items={breadcrumbItems} />
-      
-      {/* Type by City */}
-      <Stack spacing="xl">
-        <Title order={2} size="h3" mb="md">
-          {typeInfo.displayName} by City
-        </Title>
-        <Group>
-          {allCities.map((city) => (
-            <Button
-              key={city}
-              component={Link}
-              href={`/v/${params.type}/${city}`}
-              variant="light"
-            >
-              {typeInfo.displayName} in {format.toDisplay(city)}
-            </Button>
-          ))}
-        </Group>
-      </Stack>
+    const breadcrumbs = [
+      {
+        label: typeInfo.displayName,
+        path: `/v/${type}`,
+        actualPath: `/v/${type}`
+      }
+    ];
 
-      {/* Best Global Businesses */}
-      <Stack spacing="xl" mt="xl">
-        <Title order={2} size="h3" mb="md">
-          Best Global {typeInfo.displayName}s
-        </Title>
-        <BusinessGrid businesses={businessList} />
-      </Stack>
+    // Get all cities
+    const cities = Object.values(locations.countries)
+      .flatMap(country => 
+        Object.keys(country.cities).map(city => ({
+          city,
+          displayName: format.toDisplay(city)
+        }))
+      );
 
-      {/* Other Business Types */}
-      <Stack spacing="xl" mt="xl">
-        <Title order={2} size="h3" mb="md">
-          Other Business Types
-        </Title>
-        <Group>
-          {otherTypes.map(([type, info]) => (
-            <Button
-              key={type}
-              component={Link}
-              href={`/v/${type}`}
-              variant="light"
-            >
-              {info.displayName}
-            </Button>
-          ))}
-        </Group>
-      </Stack>
+    return (
+      <Container size="md" py="xl">
+        <Stack spacing="xl">
+          <SearchBar />
+          <Breadcrumbs items={breadcrumbs} />
 
-      {/* Search by City */}
-      <Stack spacing="xl" mt="xl">
-        <Title order={2} size="h3" mb="md">
-          Search by City
-        </Title>
-        <Group>
-          {allCities.map((city) => (
-            <Button
-              key={city}
-              component={Link}
-              href={`/v/${params.type}/${city}`}
-              variant="light"
-            >
-              {format.toDisplay(city)}
-            </Button>
-          ))}
-        </Group>
-      </Stack>
-    </Container>
-  );
+          {/* Hair Salons by City */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              {typeInfo.displayName}s by City
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {cities.map(({ city, displayName }) => (
+                  <Button
+                    key={city}
+                    component={Link}
+                    href={`/v/${type}/${city}`}
+                    variant="light"
+                    style={{ minWidth: 'fit-content' }}
+                  >
+                    {typeInfo.displayName}s in {displayName}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+
+          {/* Best Global Hair Salons */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Best Global {typeInfo.displayName}s
+            </Title>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              {displayBusinesses.map((business) => (
+                <BusinessCard key={business.id} business={business} />
+              ))}
+            </SimpleGrid>
+            {hasMoreBusinesses && (
+              <Button
+                variant="light"
+                component={Link}
+                href={`/v/${type}/all`}
+                style={{ alignSelf: 'center' }}
+              >
+                Show More
+              </Button>
+            )}
+          </Stack>
+
+          {/* Other Business Types */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Other Business Types
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {Object.entries(services.types)
+                  .filter(([t]) => t !== type)
+                  .map(([typeSlug, info]) => (
+                    <Button
+                      key={typeSlug}
+                      component={Link}
+                      href={`/v/${typeSlug}`}
+                      variant="light"
+                      style={{ minWidth: 'fit-content' }}
+                    >
+                      {info.displayName}
+                    </Button>
+                  ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+
+          {/* Search by City */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Search by City
+            </Title>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {cities.map(({ city, displayName }) => (
+                  <Button
+                    key={city}
+                    component={Link}
+                    href={`/v/${type}/${city}`}
+                    variant="light"
+                    style={{ minWidth: 'fit-content' }}
+                  >
+                    {displayName}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
+          </Stack>
+        </Stack>
+      </Container>
+    );
+  } catch (error) {
+    console.error('Error in TypePage:', error);
+    return (
+      <Container size="md" py="xl">
+        <div>Something went wrong. Please try again later.</div>
+      </Container>
+    );
+  }
 } 

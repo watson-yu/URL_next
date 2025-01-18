@@ -1,123 +1,147 @@
 import { Container } from '@/components/Container';
-import { services } from '@/data/services';
 import { businesses } from '@/data/businesses';
-import { locationUtils } from '@/utils/routes';
+import { getServices } from '@/data/services';
+import { getLocations } from '@/data/locations';
 import { format } from '@/utils/format';
 import { notFound } from 'next/navigation';
-import { Title, Group, Stack, Button } from '@mantine/core';
-import { BusinessGrid } from '@/components/BusinessGrid';
-import { SearchBar } from '@/components/SearchBar';
-import Link from 'next/link';
+import { Title, Stack, Group, Button } from '@mantine/core';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { SearchBar } from '@/components/SearchBar';
+import { BusinessGrid } from '@/components/BusinessGrid';
+import Link from 'next/link';
 
-export default function CityPage({ 
-  params 
-}: { 
-  params: { type: string; city: string } 
-}) {
-  const typeInfo = services.types[params.type];
-  
-  if (!typeInfo || !locationUtils.isCityValid(params.city)) {
-    notFound();
-  }
+interface PageProps {
+  params: {
+    type: string;
+    city: string;
+  };
+}
 
-  const businessList = businesses.getByTypeAndCity(params.type, params.city);
-  const districts = locationUtils.getDistrictsForCity(params.city);
-  const otherTypes = Object.entries(services.types)
-    .filter(([type]) => type !== params.type);
+export default async function CityPage({ params }: PageProps) {
+  try {
+    const [services, businessList, locations] = await Promise.all([
+      getServices(),
+      businesses.getByTypeAndCity(params.type, params.city),
+      getLocations()
+    ]);
 
-  const breadcrumbItems = [
-    {
-      label: typeInfo.displayName,
-      path: `/v/${params.type}`,
-      actualPath: `/v/${params.type}`
-    },
-    {
-      label: format.toDisplay(params.city),
-      path: `/v/${params.type}/${params.city}`,
-      actualPath: `/v/${params.type}/${params.city}`
+    const typeInfo = services.types[params.type];
+    if (!typeInfo) {
+      notFound();
     }
-  ];
 
-  return (
-    <Container size="md" py="xl">
-      <SearchBar />
-      <Breadcrumbs items={breadcrumbItems} />
-      
-      <Stack spacing="xl">
-        {/* Available Services */}
-        <Stack spacing="md">
-          <Title order={2} size="h3">
-            Available Services
-          </Title>
-          <Group>
-            <Button
-              component={Link}
-              href={`/v/${params.type}/${params.city}`}
-              variant="filled"
-              color="blue"
-            >
-              {typeInfo.displayName}
-            </Button>
-            {typeInfo.services.map((service) => (
+    // Get available services for this type
+    const treatments = typeInfo.treatments || [];
+
+    // Get districts for this city
+    const cityDistricts = Object.values(locations.countries)
+      .flatMap(country => 
+        Object.entries(country.cities)
+          .filter(([citySlug]) => citySlug === params.city)
+          .flatMap(([_, cityData]) => cityData.districts)
+      );
+
+    const breadcrumbs = [
+      {
+        label: typeInfo.displayName,
+        path: `/v/${params.type}`,
+        actualPath: `/v/${params.type}`
+      },
+      {
+        label: format.toDisplay(params.city),
+        path: `/v/${params.type}/${params.city}`,
+        actualPath: `/v/${params.type}/${params.city}`
+      }
+    ];
+
+    return (
+      <Container size="md" py="xl">
+        <Stack spacing="xl">
+          <SearchBar />
+          <Breadcrumbs items={breadcrumbs} />
+
+          {/* Available Services */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Available Services
+            </Title>
+            <Group>
               <Button
-                key={service}
                 component={Link}
-                href={`/t/${service}/${params.city}`}
-                variant="light"
+                href={`/v/${params.type}/${params.city}`}
+                variant="filled"
               >
-                {format.toDisplay(service)}
+                {typeInfo.displayName}
               </Button>
-            ))}
-          </Group>
-        </Stack>
+              {treatments.map(treatment => (
+                <Button
+                  key={treatment.slug}
+                  component={Link}
+                  href={`/t/${treatment.slug}/${params.city}`}
+                  variant="light"
+                >
+                  {treatment.treatment}
+                </Button>
+              ))}
+            </Group>
+          </Stack>
 
-        {/* Best Hair Salons */}
-        <Stack spacing="md">
-          <Title order={2} size="h3">
-            Best {typeInfo.displayName}s near me in {format.toDisplay(params.city)}
-          </Title>
-          <BusinessGrid businesses={businessList} />
-        </Stack>
+          {/* Best Hair Salons near me */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Best {typeInfo.displayName}s near me in {format.toDisplay(params.city)}
+            </Title>
+            <BusinessGrid businesses={businessList} />
+          </Stack>
 
-        {/* Other Business Types */}
-        <Stack spacing="md">
-          <Title order={2} size="h3">
-            Other Business Types
-          </Title>
-          <Group>
-            {otherTypes.map(([type, info]) => (
-              <Button
-                key={type}
-                component={Link}
-                href={`/v/${type}/${params.city}`}
-                variant="light"
-              >
-                {info.displayName}
-              </Button>
-            ))}
-          </Group>
-        </Stack>
+          {/* Other Business Types */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              Other Business Types
+            </Title>
+            <Group>
+              {Object.entries(services.types)
+                .filter(([t]) => t !== params.type)
+                .map(([type, info]) => (
+                  <Button
+                    key={type}
+                    component={Link}
+                    href={`/v/${type}/${params.city}`}
+                    variant="light"
+                  >
+                    {info.displayName}
+                  </Button>
+                ))}
+            </Group>
+          </Stack>
 
-        {/* Hair Salon in Districts */}
-        <Stack spacing="md">
-          <Title order={2} size="h3">
-            {typeInfo.displayName} in Districts
-          </Title>
-          <Group>
-            {districts.map((district) => (
-              <Button
-                key={district}
-                component={Link}
-                href={`/v/${params.type}/${params.city}/${district}`}
-                variant="light"
-              >
-                {typeInfo.displayName} in {format.toDisplay(district)}
-              </Button>
-            ))}
-          </Group>
+          {/* Hair Salon in Districts */}
+          <Stack spacing="md">
+            <Title order={2} size="h3">
+              {typeInfo.displayName} in Districts
+            </Title>
+            <Group>
+              {cityDistricts.map(district => (
+                <Button
+                  key={district}
+                  component={Link}
+                  href={`/v/${params.type}/${params.city}/${district}`}
+                  variant="light"
+                >
+                  {typeInfo.displayName} in {format.toDisplay(district)}
+                </Button>
+              ))}
+            </Group>
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
-  );
+      </Container>
+    );
+  } catch (error) {
+    console.error('Error in CityPage:', error);
+    return (
+      <Container size="md" py="xl">
+        <div>Something went wrong. Please try again later.</div>
+      </Container>
+    );
+  }
 } 

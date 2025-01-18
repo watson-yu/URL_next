@@ -2,20 +2,21 @@
 
 import { Card, Text, Badge, Stack } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { services } from '@/data/services';
 import { format } from '@/utils/format';
-
-interface BusinessLocation {
-  city: string;
-  district: string;
-  country: string;
-}
 
 interface Business {
   id: number;
   name: string;
   type: string;
-  location: BusinessLocation;
+  services: string[];
+  country: string;
+  city: string;
+  district: string;
+  country_slug: string;
+  city_slug: string;
+  district_slug: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface BusinessCardProps {
@@ -24,22 +25,20 @@ interface BusinessCardProps {
 
 export function BusinessCard({ business }: BusinessCardProps) {
   const router = useRouter();
-  const typeInfo = services.types[business.type];
 
-  if (!typeInfo) {
+  if (!business) {
     return null;
   }
 
   const handleClick = () => {
-    const { type } = business;
-    const { city, district } = business.location;
+    const { type, city_slug, district_slug } = business;
     const businessId = business.id?.toString();
 
-    if (!type || !city || !district || !businessId) {
+    if (!type || !city_slug || !district_slug || !businessId) {
       return;
     }
 
-    router.push(`/v/${type}/${city}/${district}/${businessId}`);
+    router.push(`/v/${type}/${city_slug}/${district_slug}/${businessId}`);
   };
 
   return (
@@ -57,16 +56,16 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </Text>
 
         <Text size="sm" c="dimmed">
-          {format.toDisplay(business.location.district)}, 
-          {format.toDisplay(business.location.city)}, 
-          {business.location.country}
+          {format.toDisplay(business.district)}, 
+          {format.toDisplay(business.city)}, 
+          {business.country}
         </Text>
 
         <Badge 
           variant="light"
           size="lg"
         >
-          {typeInfo.displayName}
+          {business.type}
         </Badge>
       </Stack>
     </Card>

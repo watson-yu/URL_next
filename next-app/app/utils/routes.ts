@@ -1,7 +1,8 @@
-import { locations } from '../data/locations';
+import { getLocations } from '../data/locations';
 
 export const locationUtils = {
-  getAllCities: () => {
+  async getAllCities() {
+    const locations = await getLocations();
     const cities: string[] = [];
     Object.values(locations.countries).forEach(country => {
       Object.keys(country.cities).forEach(city => {
@@ -11,7 +12,8 @@ export const locationUtils = {
     return cities;
   },
 
-  getDistrictsForCity: (city: string) => {
+  async getDistrictsForCity(city: string) {
+    const locations = await getLocations();
     for (const country of Object.values(locations.countries)) {
       if (city in country.cities) {
         return country.cities[city].districts;
@@ -20,12 +22,13 @@ export const locationUtils = {
     return [];
   },
 
-  isCityValid: (city: string): boolean => {
-    return locationUtils.getAllCities().includes(city);
+  async isCityValid(city: string): Promise<boolean> {
+    const cities = await this.getAllCities();
+    return cities.includes(city);
   },
 
-  isDistrictValid: (city: string, district: string): boolean => {
-    const districts = locationUtils.getDistrictsForCity(city);
+  async isDistrictValid(city: string, district: string): Promise<boolean> {
+    const districts = await this.getDistrictsForCity(city);
     return districts.includes(district);
   }
 };
