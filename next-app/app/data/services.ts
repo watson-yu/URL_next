@@ -2,7 +2,12 @@ import { apiClient } from '../utils/api-client';
 
 interface ServiceType {
   displayName: string;
-  services: string[];
+  treatments: {
+    id: number;
+    treatment: string;
+    slug: string;
+    description: string;
+  }[];
 }
 
 interface ServicesData {
@@ -25,7 +30,12 @@ async function fetchServices(): Promise<ServicesData> {
         
         services.types[category.slug] = {
           displayName: category.display_name,
-          services: treatments.map(t => t.slug)
+          treatments: treatments.map(t => ({
+            id: t.id,
+            treatment: t.treatment,
+            slug: t.slug,
+            description: t.description
+          }))
         };
       })
     );
@@ -53,7 +63,7 @@ export async function getCategoryByTreatment(treatmentSlug: string): Promise<str
   const servicesData = await getServices();
   
   for (const [category, info] of Object.entries(servicesData.types)) {
-    if (info.services.includes(treatmentSlug)) {
+    if (info.treatments.some(t => t.slug === treatmentSlug)) {
       return category;
     }
   }

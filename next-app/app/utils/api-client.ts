@@ -50,7 +50,11 @@ interface Business {
   id: number;
   name: string;
   type: string;
-  services: string[];
+  services: {
+    slug: string;
+    price: number | null;
+    duration_minutes: number | null;
+  }[];
   country: string;
   city: string;
   district: string;
@@ -59,6 +63,8 @@ interface Business {
   district_slug: string;
   created_at: string;
   updated_at: string;
+  is_featured: number;
+  featured_order: number;
 }
 
 interface BusinessListResponse {
@@ -91,7 +97,7 @@ const fallbackData = {
       id: 1,
       name: "Test Business",
       type: "hair-salon",
-      services: ["haircut"],
+      services: [{ slug: "haircut", price: 100, duration_minutes: 30 }],
       country: "Taiwan",
       city: "Taipei",
       district: "Xinyi",
@@ -99,7 +105,9 @@ const fallbackData = {
       city_slug: "taipei",
       district_slug: "xinyi",
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      is_featured: 1,
+      featured_order: 1
     }]
   }
 };

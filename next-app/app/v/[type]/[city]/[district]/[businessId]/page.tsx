@@ -33,7 +33,7 @@ export default async function BusinessPage({ params }: PageProps) {
 
     const treatments = typeInfo.treatments || [];
     const serviceDetails = treatments.filter(t => 
-      business.services.includes(t.slug)
+      business.services.some(s => s.slug === t.slug)
     );
 
     const breadcrumbs = [
