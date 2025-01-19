@@ -65,25 +65,27 @@ export default async function CityPage({ params }: PageProps) {
             <Title order={2} size="h3">
               Available Services
             </Title>
-            <Group>
-              <Button
-                component={Link}
-                href={`/v/${params.type}/${params.city}`}
-                variant="filled"
-              >
-                {typeInfo.displayName}
-              </Button>
-              {treatments.map(treatment => (
+            <ScrollArea scrollbarSize={4} type="scroll" offsetScrollbars scrollHideDelay={500}>
+              <Group style={{ minWidth: 'max-content' }} spacing="sm">
                 <Button
-                  key={treatment.slug}
                   component={Link}
-                  href={`/t/${treatment.slug}/${params.city}`}
-                  variant="light"
+                  href={`/v/${params.type}/${params.city}`}
+                  variant="filled"
                 >
-                  {treatment.treatment}
+                  {typeInfo.displayName}
                 </Button>
-              ))}
-            </Group>
+                {treatments.map(treatment => (
+                  <Button
+                    key={treatment.slug}
+                    component={Link}
+                    href={`/t/${treatment.slug}/${params.city}`}
+                    variant="light"
+                  >
+                    {treatment.treatment}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
           </Stack>
 
           {/* Best Hair Salons near me */}

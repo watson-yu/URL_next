@@ -26,17 +26,26 @@ async function fetchServices(): Promise<ServicesData> {
     // Fetch treatments for each category
     await Promise.all(
       categories.map(async (category) => {
-        const treatments = await apiClient.getTreatmentsByCategory(category.slug);
-        
-        services.types[category.slug] = {
-          displayName: category.display_name,
-          treatments: treatments.map(t => ({
-            id: t.id,
-            treatment: t.treatment,
-            slug: t.slug,
-            description: t.description
-          }))
-        };
+        try {
+          const treatments = await apiClient.getTreatmentsByCategory(category.slug);
+          
+          services.types[category.slug] = {
+            displayName: category.display_name,
+            treatments: treatments.map(t => ({
+              id: t.id,
+              treatment: t.treatment,
+              slug: t.slug,
+              description: t.description
+            }))
+          };
+        } catch (error) {
+          // If treatments fetch fails, still create the category with empty treatments
+          services.types[category.slug] = {
+            displayName: category.display_name,
+            treatments: []
+          };
+          console.warn(`Failed to fetch treatments for category ${category.slug}:`, error);
+        }
       })
     );
 
