@@ -4,7 +4,7 @@ import { getServices } from '@/data/services';
 import { getLocations } from '@/data/locations';
 import { format } from '@/utils/format';
 import { notFound } from 'next/navigation';
-import { Title, Stack, Group, Button } from '@mantine/core';
+import { Title, Stack, Group, Button, ScrollArea } from '@mantine/core';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { SearchBar } from '@/components/SearchBar';
 import { BusinessGrid } from '@/components/BusinessGrid';
@@ -99,20 +99,23 @@ export default async function CityPage({ params }: PageProps) {
             <Title order={2} size="h3">
               Other Business Types
             </Title>
-            <Group>
-              {Object.entries(services.types)
-                .filter(([t]) => t !== params.type)
-                .map(([type, info]) => (
-                  <Button
-                    key={type}
-                    component={Link}
-                    href={`/v/${type}/${params.city}`}
-                    variant="light"
-                  >
-                    {info.displayName}
-                  </Button>
-                ))}
-            </Group>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {Object.entries(services.types)
+                  .filter(([t]) => t !== params.type)
+                  .map(([type, info]) => (
+                    <Button
+                      key={type}
+                      component={Link}
+                      href={`/v/${type}/${params.city}`}
+                      variant="light"
+                      style={{ minWidth: 'fit-content' }}
+                    >
+                      {info.displayName}
+                    </Button>
+                  ))}
+              </Group>
+            </ScrollArea>
           </Stack>
 
           {/* Hair Salon in Districts */}
@@ -120,18 +123,21 @@ export default async function CityPage({ params }: PageProps) {
             <Title order={2} size="h3">
               {typeInfo.displayName} in Districts
             </Title>
-            <Group>
-              {cityDistricts.map(district => (
-                <Button
-                  key={district}
-                  component={Link}
-                  href={`/v/${params.type}/${params.city}/${district}`}
-                  variant="light"
-                >
-                  {typeInfo.displayName} in {format.toDisplay(district)}
-                </Button>
-              ))}
-            </Group>
+            <ScrollArea>
+              <Group gap="md" wrap="nowrap" pr="md">
+                {cityDistricts.map(district => (
+                  <Button
+                    key={district}
+                    component={Link}
+                    href={`/v/${params.type}/${params.city}/${district}`}
+                    variant="light"
+                    style={{ minWidth: 'fit-content' }}
+                  >
+                    {typeInfo.displayName} in {format.toDisplay(district)}
+                  </Button>
+                ))}
+              </Group>
+            </ScrollArea>
           </Stack>
         </Stack>
       </Container>
@@ -144,4 +150,4 @@ export default async function CityPage({ params }: PageProps) {
       </Container>
     );
   }
-} 
+}
